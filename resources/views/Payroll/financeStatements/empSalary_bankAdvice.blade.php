@@ -1,0 +1,429 @@
+@extends('layouts.app')
+
+@section('content')
+
+				<main>
+                    <div class="page-header">
+                        <div class="container-fluid d-none d-sm-block shadow">
+                            @include('layouts.payroll_nav_bar')
+                        </div>
+                        <div class="container-fluid">
+                            <div class="page-header-content py-3 px-2">
+                                <h1 class="page-header-title ">
+                                    <div class="page-header-icon"><i class="fa-light fa-money-check-dollar-pen"></i></div>
+                                    <span>Bank Advice</span>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container-fluid mt-2 p-0 p-2">
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="default">
+                                    <form id="frmExport" method="post" action="{{ url('DownloadEpfEtf') }}">
+                                    {{ csrf_field() }}
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="col-12 text-right">
+                                                    <button type="button" name="find_employee" id="find_employee" class="btn btn-success btn-sm px-3"><i class="fal fa-search mr-2"></i>Search</button>
+                                                    <button type="button" name="print_record" id="print_record" disabled="disabled" class="btn btn-danger btn-sm btn-light px-3"  onclick="generatePDF();"><i class="fal fa-file-pdf mr-2"></i>Download PDF</button>
+                                                </div>
+                                                <hr>
+                                                <div id="divPrint" class="center-block fix-width scroll-inner" style="margin-top:0px;">
+                                                    <table class="table table-bordered table-sm small w-100 nowrap table-hover" id="emp_bank_table" width="100%" cellspacing="0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="width:25px;">NO.</th>
+                                                                <th>NAME</th>
+                                                                <th>BANK</th>
+                                                                <th>BANK A/C N0.</th>
+                                                                <th>NET PAY</th>
+                                                            </tr>
+                                                        </thead>
+                                                     
+                                                        <tbody class="">
+                                                        </tbody>
+                                                        <tr>
+                                                            <td colspan="4" style="text-align:right;"><strong>Total to be credited:</strong></td>
+                                                           <td style="text-align:right;"><label for="" id="totalnetsalry"></label></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <input type="hidden" name="payroll_profile_id" id="payroll_profile_id" value="" /><!-- edit loans -->
+                                                <input type="hidden" name="payment_period_id" id="payment_period_id" value="" />
+                                                <input type="hidden" name="payslip_process_type_id" id="payslip_process_type_id" value="" />
+                                                
+                                                <input type="hidden" name="rpt_period_id" id="rpt_period_id" value="" />
+                                                <input type="hidden" name="rpt_info" id="rpt_info" value="-" />
+                                                <input type="hidden" name="rpt_payroll_id" id="rpt_payroll_id" value="" />
+                                                <input type="hidden" name="rpt_location_id" id="rpt_location_id" value="" />
+                                                
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                   
+                      <div id="formModal" class="modal fade" role="dialog">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="formModalLabel"></h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="frmSearch" method="post">
+                                        {{ csrf_field() }}
+                                        <span id="search_result"></span>
+                                        <div class="form-row mb-1">
+                                            <div class="col">
+                                                <label class="font-weight-bolder small">Location*</label>
+                                                 <select name="location_filter_id" id="location_filter_id" class="custom-select custom-select-sm " style="pointer-events: none;" >
+                                                        <option value="" disabled="disabled" selected="selected">Please Select</option>
+                                                        @foreach($branch as $branches)
+                                                        <option value="{{$branches->id}}">{{$branches->name}}</option>
+                                                        @endforeach
+                                                        
+                                                   </select>
+                                            </div>
+                                            <div class="col">
+                                                <label class="font-weight-bolder small">Department*</label>
+                                                 <select name="department_filter_id" id="department_filter_id" class="custom-select custom-select-sm" style="" data-nestname="deptnest" >
+                                                         <option value="" disabled="disabled" selected="selected">Please Select</option>
+                                                         <option value="All" >All</option>
+                                                         @foreach($department as $section)
+                                                         <option value="{{$section->id}}" >{{$section->name}}</option>
+                                                         @endforeach
+                                                    </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row mb-1">
+                                            <div class="col">
+                                                <label class="font-weight-bolder small">Payroll type*</label>
+                                                 <select name="payroll_process_type_id" id="payroll_process_type_id" class="form-control form-control-sm" >
+                                                     <option value="" disabled="disabled" selected="selected">Please select</option>
+                                                     @foreach($payroll_process_type as $payroll)
+                                                     
+                                                     <option value="{{$payroll->id}}" data-totdays="{{$payroll->total_work_days}}">{{$payroll->process_name}}</option>
+                                                     @endforeach
+                                                     
+                                                  </select>
+                                            </div>
+                                            <div class="col">
+                                                <label class="font-weight-bolder small">Working Period*</label>
+                                                <select name="period_filter_id" id="period_filter_id" class="custom-select custom-select-sm"
+                                                    style="" required>
+                                                    <option value="" disabled="disabled" selected="selected">Please Select</option>
+                                                    @foreach($payment_period as $schedule)
+
+                                                    <option value="{{$schedule->id}}" disabled="disabled" data-payroll="{{$schedule->payroll_process_type_id}}" style="display:none;">
+                                                        {{$schedule->payment_period_fr}} to {{$schedule->payment_period_to}}
+                                                    </option>
+                                                    @endforeach
+
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-12 text-right">
+                                                <hr>
+                                                <input type="submit" name="action_button" id="action_button" class="btn btn-success btn-sm px-3" value="View Statement" />
+                                                <button type="button" class="btn btn-light btn-sm px-3" data-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+              
+@endsection
+
+
+@section('script')
+
+<script>
+$(document).ready(function(){
+    $('#payroll_menu_link').addClass('active');
+    $('#payroll_menu_link_icon').addClass('active');
+    $('#payrollststement').addClass('navbtnactive');
+
+    var companyId = '{{ session("company_id") }}';
+    var companyName = '{{ session("company_name") }}';
+
+    if (companyId && companyName) {
+        $('#location_filter_id').val(companyId).trigger('change');
+    }
+    
+
+    var empTable = $("#emp_bank_table").DataTable({
+        "columns": [
+            { data: 'emp_index', className: "text-left" },
+            { data: 'emp_first_name', className: "text-left" },
+            { data: 'bank_name', className: "text-left" },
+            { data: 'emp_bank_acno', className: "text-left" },
+            { 
+                data: 'emp_netpay', 
+                className: "text-right", 
+                render: function(data, type, row) {
+                    return parseFloat(data).toFixed(2);
+                } 
+            }
+        ],
+        "order": [],
+        "createdRow": function(row, data, dataIndex) {
+            $(row).attr('id', 'row-' + data.id); // Set the row ID
+        }
+    });
+
+	//var loanTable=$("#loantable").DataTable();
+	
+	var _token = $('#frmSearch input[name="_token"]').val();;
+	
+	function findEmployee(){
+		$('#formModalLabel').text('Find Employee');
+		//$('#action_button').val('Add');
+		//$('#action').val('Add');
+		$('#search_result').html('');
+		
+		$('#formModal').modal('show');
+	}
+	
+	$('#find_employee').click(function(){
+		findEmployee();
+	});
+	
+	$(".modal").on("shown.bs.modal", function(){
+		var objinput=$(this).find('input[type="text"]:first-child');
+		objinput.focus();
+		objinput.select();
+	});
+	
+	$("#payroll_process_type_id").on("change", function(){
+		$('#period_filter_id').val('');
+		$('#period_filter_id option').prop("disabled", true);
+		$('#period_filter_id option:not(:first-child)').hide();
+		$('#period_filter_id option[data-payroll="'+$("#payroll_process_type_id").find(":selected").val()+'"]').prop("disabled", false);
+		$('#period_filter_id option[data-payroll="'+$("#payroll_process_type_id").find(":selected").val()+'"]').show();
+	});
+	
+	$("#frmSearch").on('submit', function(event){
+	  event.preventDefault();
+	  
+	  $.ajax({
+	   url:"previewBankAdvice",
+	   method:'POST',
+	   data:$(this).serialize(),
+	   dataType:"JSON",
+	   beforeSend:function(){
+		//$('#find_employee').prop('disabled', true);
+	   },
+	   success:function(data){
+		//alert(JSON.stringify(data));
+		var html = '';
+		empTable.clear();
+		
+		if(data.errors){
+			html = '<div class="alert alert-danger">';
+			for(var count = 0; count < data.errors.length; count++){
+			  html += '<p>' + data.errors[count] + '</p>';
+			}
+			html += '</div>';
+			$('#search_result').html(html);
+		}else{
+			empTable.rows.add(data.employee_detail);
+			empTable.draw();
+			$("#lbl_date_fr").html(data.work_date_fr);
+			$("#lbl_date_to").html(data.work_date_to);
+            $("#totalnetsalry").html(parseFloat(data.total_netpay).toFixed(2));
+			$("#lbl_duration").show();
+			$("#payment_period_id").val(data.payment_period_id);
+			$("#payslip_process_type_id").val($("#payroll_process_type_id").find(":selected").val());
+			$("#lbl_payroll_name").html($("#payroll_process_type_id").find(":selected").text());
+			//$('#find_employee').prop('disabled', false);
+			
+			$("#rpt_payroll_id").val($("#payroll_process_type_id").find(":selected").val());
+			$("#rpt_location_id").val($("#location_filter_id").find(":selected").val());
+			$("#rpt_period_id").val($("#period_filter_id").find(":selected").val());
+			$("#rpt_info").val(data.work_date_fr+" To "+data.work_date_to+" ("+$("#payroll_process_type_id").find(":selected").text()+")");
+			$("#print_record").prop('disabled', false);
+			$("#print_record").removeClass('btn-light');
+			
+			$('#formModal').modal('hide');
+		}
+	   }
+	  })
+	});
+	
+	
+	$(".btn_back").on("click", function(){
+		$(".show .frm_info").addClass('sect_bg');
+		$(".show .frm_link").removeClass('sect_bg');
+	});
+	
+	
+	$(".modal").on("shown.bs.modal", function(e){
+		if($(this).find(".frm_link")){
+			$(".show .frm_info").addClass('sect_bg');
+			$(".show .frm_link").removeClass('sect_bg');
+		}
+	});
+});
+
+function centerText(text, y, doc) {
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var textWidth = doc.getTextWidth(text);
+    doc.text(text, (pageWidth - textWidth) / 2, y);
+}
+
+function rightAlignText(text, y, doc, margin = 22) {
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var textWidth = doc.getTextWidth(text);
+    var xCoordinate = pageWidth - textWidth - margin; 
+
+    doc.text(text, xCoordinate, y);
+}
+
+function centerTextWithUnderline(text, y, doc) {
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var textWidth = doc.getTextWidth(text);
+    var startX = (pageWidth - textWidth) / 2;
+    
+    doc.text(text, startX, y);
+
+    doc.line(startX, y + 1, startX + textWidth, y + 1); 
+}
+
+async function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const { autoTable } = window.jspdf;
+
+    const doc = new jsPDF();
+    const margins = { top: 35 };
+
+    var companyId = '{{ session("company_id") }}';
+    var companyName = '{{ session("company_name") }}';
+    var companyAddress = '{{ session("company_address") }}';
+    var workfrom = $("#lbl_date_fr").text();
+    var workto = $("#lbl_date_to").text();
+    var debit_total_text = $("#debit_total_text").val();
+    var thousentseparate_debit_total = $("#thousentseparate_debit_total").val();
+
+    var date = new Date(workto);
+    var formattedDate = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    doc.autoTable({
+        html: '#emp_bank_table',
+        theme: 'grid',
+        margin: margins,
+        headStyles: {
+            fillColor: [255, 255, 255],
+            textColor: [0, 0, 0],
+            fontStyle: 'bold'
+        },
+        styles: {
+            lineWidth: 0,
+            lineColor: [0, 0, 0]
+        },
+        columnStyles: {
+            0: { halign: 'left' },
+            1: { halign: 'left' },
+            2: { halign: 'left' },
+            3: { halign: 'left' },
+            4: { halign: 'right' }
+        },
+        didParseCell: function (data) {
+            if (data.column.index === 4) {
+                var plainText = $(data.cell.raw).text();
+                if (!isNaN(plainText) && plainText !== '') {
+                    const formattedValue = parseFloat(plainText).toFixed(2)
+                        .toString()
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    data.cell.text = [formattedValue];
+                }
+            }
+        },
+        didDrawCell: function (data) {
+            const table = data.table;
+            const lastRowIndex = table.body.length - 1;
+
+            if (data.row.index === lastRowIndex) {
+                if (data.column.index === 1 || data.column.index === 2) {
+                    doc.setLineWidth(0.5); 
+                    doc.setDrawColor(0, 0, 0); 
+                    doc.line(data.cell.x, data.cell.y, data.cell.x + data.cell.width, data.cell.y);      
+        
+                    doc.setLineWidth(0.5); 
+                    doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height); 
+
+                    doc.setLineWidth(0.5); 
+                    doc.line(data.cell.x, data.cell.y + data.cell.height + 1, data.cell.x + data.cell.width, data.cell.y + data.cell.height + 1); 
+                }
+            }
+        },
+        
+        didDrawPage: function (data) {
+            doc.setFontSize(12);
+            doc.setFont('Helvetica', 'normal');
+            centerTextWithUnderline('Bank Advice', 15, doc);
+
+            doc.setFontSize(14);
+            doc.setTextColor(40);
+            doc.setFont('Helvetica', 'bold');
+            centerText(companyName || "Your Company Name", 22, doc);
+
+            doc.setFontSize(9);
+            doc.setFont('Helvetica', 'normal');
+            rightAlignText('NO : ....................', 22, doc);
+
+            doc.setFontSize(9);
+            doc.setFont('Helvetica', 'normal');
+            centerText(companyAddress, 27, doc);
+
+            doc.setFontSize(9);
+            doc.setFont('Helvetica', 'normal');
+            rightAlignText('Date : ' + workto, 27, doc);
+
+            const footerYPosition = data.cursor.y + 10;
+
+            const signyPosition = footerYPosition + 10;
+            doc.setFontSize(11);
+            const signpageWidth = doc.internal.pageSize.getWidth();
+            const signcolWidth = signpageWidth / 4;
+            const signtext1 = '..........................';
+            const signtext2 = '..........................';
+            const signtext3 = '..........................';
+            const signtext4 = '..........................';
+            doc.text(signtext1, 14, signyPosition);
+            doc.text(signtext2, 14 + signcolWidth, signyPosition);
+            doc.text(signtext3, 14 + 2 * signcolWidth, signyPosition);
+            doc.text(signtext4, 14 + 3 * signcolWidth, signyPosition);
+
+            doc.setFontSize(11);
+            const colWidth = signpageWidth / 4;
+            const text1 = 'Asst Accountant';
+            const text2 = 'J L Folio';
+            const text3 = 'Manager';
+            const text4 = 'Director';
+            const yPosition = signyPosition + 5;
+            doc.text(text1, 14, yPosition);
+            doc.text(text2, 14 + colWidth, yPosition);
+            doc.text(text3, 14 + 2 * colWidth, yPosition);
+            doc.text(text4, 14 + 3 * colWidth, yPosition);
+        }
+    });
+
+    doc.save('Bank Advice' + workfrom + ' to ' + workto + '.pdf');
+}
+
+
+
+</script>
+
+@endsection

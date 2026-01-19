@@ -1,0 +1,730 @@
+@extends('layouts.app')
+
+@section('content')
+
+    <main>
+        <div class="page-header shadow">
+            <div class="container-fluid d-none d-sm-block shadow">
+                @include('layouts.attendant&leave_nav_bar')
+            </div>
+            <div class="container-fluid">
+                <div class="page-header-content py-3 px-2">
+                    <h1 class="page-header-title ">
+                        <div class="page-header-icon"><i class="fa-light fa-calendar-pen"></i></div>
+                        <span>Attendance Edit</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid mt-2 p-0 p-2">
+            <div class="card">
+                <div class="card-body p-0 p-2">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <button type="button" class="btn btn-primary btn-sm fa-pull-right px-3 mr-2" name="edit_record_month" id="edit_record_month"><i class="fas fa-pencil-alt mr-2"></i>Edit - Month</button>
+                            {{-- <button id="approve_att" class="btn btn-success btn-sm fa-pull-right px-3 mr-2"><i class="fas fa-upload mr-2"></i> Update Attendance</button><br> --}}
+                        </div>
+                        <div class="col-12">
+                            <hr class="border-dark">
+                        </div>
+                         <div class="col-md-12">
+                                    <button class="btn btn-warning btn-sm filter-btn float-right px-3" type="button"
+                                        data-toggle="offcanvas" data-target="#offcanvasRight"
+                                        aria-controls="offcanvasRight"><i class="fas fa-filter mr-1"></i> Filter
+                                        Options</button>
+                                </div><br><br>
+                        <div class="col-12">
+                            <div class="center-block fix-width scroll-inner">
+                                <table class="table table-striped table-bordered table-sm small nowrap" style="width: 100%" id="attendtable">
+                                    <thead>
+                                    <tr>
+                                        <th>EMPLOYEE ID</th>
+                                        <th>EMPLOYEE NAME</th>
+                                        <th>WORK MONTH</th>
+                                        <th>DEPARTMENT</th>
+                                        <th>COMPANY</th>
+                                        <th>CHECK IN TIME</th>
+                                        <th>CHECK OUT TIME</th>
+                                    </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             @include('layouts.filter_menu_offcanves')
+
+        </div>
+
+    </main>
+
+    <div class="modal fade" id="monthAtModal" data-backdrop="static" data-keyboard="false" tabindex="-1"
+         aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header p-2">
+                    <h5 class="modal-title" id="staticBackdropLabel">Attendant - Month</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="bulk_response"></div>
+                    <form method="post" id="formMonth" class="form-horizontal">
+                        {{ csrf_field() }}
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-row mb-1">
+                                    <div class="col-sm-12 col-md-6">
+                                        <label class="small font-weight-bolder text-dark">Employee*</label>
+                                        <select name="employee" id="employee_m" class="form-control form-control-sm">
+                                            <option value="">Select...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-12 col-md-6">
+                                        <label class="small font-weight-bolder text-dark">Month*</label>
+                                        <input type="month" id="month_m" name="month" class="form-control form-control-sm" min="2021-01" value="{{Date('Y-m')}}" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-sm table-bordered table-striped table-hover" id="table_month">
+                                        <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Day</th>
+                                            <th>In Time</th>
+                                            <th>Out Time</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group mt-3">
+                                    <button type="submit" name="action_button" id="btn-save" class="btn btn-primary btn-sm fa-pull-right px-4"><i class="fas fa-pencil-alt"></i>&nbsp;Update </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+@endsection
+
+
+@section('script')
+
+    <script>
+        $(document).ready(function () {
+
+            $('#attendant_menu_link').addClass('active');
+            $('#attendant_menu_link_icon').addClass('active');
+            $('#attendantmaster').addClass('navbtnactive');
+
+            let changed_records_in = [];
+            let changed_records_out = [];
+
+            let company = $('#company');
+            let department = $('#department');
+            let employee_f = $('#employee');
+            let location = $('#location');
+
+            company.select2({
+                placeholder: 'Select...',
+                width: '100%',
+                allowClear: true,
+                ajax: {
+                    url: '{{url("company_list_sel2")}}',
+                    dataType: 'json',
+                    data: function(params) {
+                        return {
+                            term: params.term || '',
+                            page: params.page || 1
+                        }
+                    },
+                    cache: true
+                }
+            });
+
+            department.select2({
+                placeholder: 'Select...',
+                width: '100%',
+                allowClear: true,
+                ajax: {
+                    url: '{{url("department_list_sel2")}}',
+                    dataType: 'json',
+                    data: function (params) {
+                        return {
+                            term: params.term || '',
+                            page: params.page || 1,
+                            company: company.val()
+                        }
+                    },
+                    cache: true
+                }
+            });
+
+            employee_f.select2({
+                placeholder: 'Select...',
+                width: '100%',
+                allowClear: true,
+                ajax: {
+                    url: '{{url("employee_list_sel2")}}',
+                    dataType: 'json',
+                    data: function(params) {
+                        return {
+                            term: params.term || '',
+                            page: params.page || 1,
+                            company: company.val(),
+                            department: department.val()
+                        }
+                    },
+                    cache: true
+                }
+            });
+
+            location.select2({
+                placeholder: 'Select...',
+                width: '100%',
+                allowClear: true,
+                ajax: {
+                    url: '{{url("location_list_sel2")}}',
+                    dataType: 'json',
+                    data: function (params) {
+                        return {
+                            term: params.term || '',
+                            page: params.page || 1
+                        }
+                    },
+                    cache: true
+                }
+            });
+
+
+            $('#employee_m').select2({
+                placeholder: 'Select...',
+                width: '100%',
+                allowClear: true,
+                ajax: {
+                    url: '{{url("employee_list_sel2")}}',
+                    dataType: 'json',
+                    data: function(params) {
+                        return {
+                            term: params.term || '',
+                            page: params.page || 1
+                        }
+                    },
+                    cache: true
+                }
+            });
+
+            load_dt('');
+
+            function load_dt(company,department, from_date, to_date, employee) {
+                $('#attendtable').DataTable({
+                    "destroy": true,
+                    "processing": true,
+                    "serverSide": true,
+                    dom: "<'row'<'col-sm-4 mb-sm-0 mb-2'B><'col-sm-2'l><'col-sm-6'f>>" + "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                    "buttons": [{
+                            extend: 'csv',
+                            className: 'btn btn-success btn-sm',
+                            title: 'Attendance Edit  Information',
+                            text: '<i class="fas fa-file-csv mr-2"></i> CSV',
+                        },
+                        { 
+                            extend: 'pdf', 
+                            className: 'btn btn-danger btn-sm', 
+                            title: 'Attendance Edit Information', 
+                            text: '<i class="fas fa-file-pdf mr-2"></i> PDF',
+                            orientation: 'landscape', 
+                            pageSize: 'legal', 
+                            customize: function(doc) {
+                                doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+                            }
+                        },
+                        {
+                            extend: 'print',
+                            title: 'Attendance   Information',
+                            className: 'btn btn-primary btn-sm',
+                            text: '<i class="fas fa-print mr-2"></i> Print',
+                            customize: function(win) {
+                                $(win.document.body).find('table')
+                                    .addClass('compact')
+                                    .css('font-size', 'inherit');
+                            },
+                        },
+                    ],
+                    ajax: {
+                        url: scripturl + "/attendance_list_for_bulk_edit.php", 
+                        type: "POST",
+                        data: {
+                            company: company,
+                            department: department,
+                            from_date: from_date,
+                            to_date: to_date,
+                            employee: employee
+                        }
+                    },
+                    columns: [
+                        { 
+                            "data": "emp_id",
+                            "name": "emp_id", 
+                        },
+                        { 
+                            "data": "employee_display",
+                            "name": "employee_display", 
+                        },
+                        { 
+                            "data": "month",
+                            "name": "month",
+                        },
+                        { 
+                            "data": "dept_name",
+                            "name": "dept_name",
+                        },
+                        { 
+                            "data": "location",
+                            "name": "location",
+                        },
+                        {
+                            "data": 'firsttimestamp',
+                            "name": 'firsttimestamp',
+                        },
+                        {
+                            "data": 'lasttimestamp',
+                            "name": 'lasttimestamp',
+                        },
+
+                         {   "data": "emp_name_with_initial", 
+                            "name": "emp_name_with_initial", 
+                            "visible": false
+                        },
+                        {   "data": "calling_name",
+                            "name": "calling_name", 
+                             "visible": false
+                        },
+                        {   "data": "emp_id", 
+                            "name": "emp_id", 
+                            "visible": false
+                        }
+                    ],
+                    "bDestroy": true,
+                    "order": [[ 2, "desc" ]],
+                    "drawCallback": function(settings) {
+                    }
+                });
+            }
+
+            $('#formFilter').on('submit',function(e) {
+                e.preventDefault();
+                let department = $('#department').val();
+                let company = $('#company').val();
+                let from_date = $('#from_date').val();
+                 let to_date = $('#to_date').val();
+                let employee = $('#employee').val();
+
+                load_dt(company, department, from_date, to_date, employee);
+                 closeOffcanvasSmoothly();
+
+            });
+
+            $(document).delegate("table tbody tr .time_in","change",function(e){
+                $(this).parent().parent().css('background-color', '#f7c8c8');
+                $(this).parent().parent().addClass('changed');
+
+                let time_stamp = e.target.value;
+
+                let b = {};
+                b["time_stamp"] = time_stamp;
+                b["existing_time_stamp"] = $(this).data('timestamp');
+                b["time_type"] = $(this).data('time_type');
+                b["id"] = $(this).data('id');
+                b["uid"] = $(this).data('uid');
+                b["date"] = $(this).data('date');
+                b["dept_id"] = $(this).data('dept_id');
+
+                //check if the record is already in the array
+                let found = false;
+                for(let i=0; i<changed_records_in.length; i++){
+                    if(changed_records_in[i]['id'] == b['id'] ){
+                        found = true;
+                        break;
+                    }
+                }
+
+                if(!found){
+                    changed_records_in.push(b);
+                }else{
+                    //update the time stamp
+                    for(let i=0; i<changed_records_in.length; i++){
+                        if(changed_records_in[i]['id'] == b['id'] ){
+                            changed_records_in[i]['time_stamp'] = b['time_stamp'];
+                            break;
+                        }
+                    }
+                }
+
+                console.log(changed_records_in);
+
+            });
+
+            $(document).delegate("table tbody tr .time_out","change",function(e){
+                $(this).parent().parent().css('background-color', '#f7c8c8');
+                $(this).parent().parent().addClass('changed');
+
+                let time_stamp = e.target.value;
+
+                let b = {};
+                b["time_stamp"] = time_stamp;
+                b["existing_time_stamp"] = $(this).data('timestamp');
+                b["time_type"] = $(this).data('time_type');
+                b["id"] = $(this).data('id');
+                b["uid"] = $(this).data('uid');
+                b["date"] = $(this).data('date');
+                b["dept_id"] = $(this).data('dept_id');
+
+                //check if the record is already in the array
+                let found = false;
+                for(let i=0; i<changed_records_out.length; i++){
+                    if(changed_records_out[i]['id'] == b['id'] ){
+                        found = true;
+                        break;
+                    }
+                }
+
+                if(!found){
+                    changed_records_out.push(b);
+                }else{
+                    //update the time stamp
+                    for(let i=0; i<changed_records_out.length; i++){
+                        if(changed_records_out[i]['id'] == b['id'] ){
+                            changed_records_out[i]['time_stamp'] = b['time_stamp'];
+                            break;
+                        }
+                    }
+                }
+
+                console.log(changed_records_out);
+
+            });
+
+
+            $(document).on('click', '#approve_att', async function (e) {
+                e.preventDefault();
+
+                var r = await Otherconfirmation("You want to Update this?");
+                if (r == true) {
+                    $.ajax({
+                        url: "AttendanceEditBulkSubmit",
+                        method: "POST",
+                        data: {
+                            'changed_records_in': changed_records_in,
+                            'changed_records_out': changed_records_out,
+                            _token: $('input[name=_token]').val(),
+                        },
+                        success: function (data) {
+                            console.log('Response data:', data); // Debug log
+
+                            if (data.errors) {
+                                const actionObj = {
+                                    icon: 'fas fa-warning',
+                                    title: '',
+                                    message: data.errors || 'Record Error',
+                                    url: '',
+                                    target: '_blank',
+                                    type: 'danger'
+                                };
+                                const actionJSON = JSON.stringify(actionObj, null, 2);
+                                action(actionJSON);
+                            } else if (data.success) {
+                                const actionObj = {
+                                    icon: 'fas fa-save',
+                                    title: '',
+                                    message: data.success,
+                                    url: '',
+                                    target: '_blank',
+                                    type: 'success'
+                                };
+                                const actionJSON = JSON.stringify(actionObj, null, 2);
+                                actionreload(actionJSON);
+
+                                // Clear the changed records after successful update
+                                changed_records_in = [];
+                                changed_records_out = [];
+
+                                // Reset background colors
+                                $('.changed').css('background-color', '');
+                                $('.changed').removeClass('changed');
+                            } else if (data.msg) {
+                                const actionObj = {
+                                    icon: 'fas fa-save',
+                                    title: '',
+                                    message: data.msg,
+                                    url: '',
+                                    target: '_blank',
+                                    type: 'success'
+                                };
+                                const actionJSON = JSON.stringify(actionObj, null, 2);
+                                actionreload(actionJSON);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('AJAX Error:', error);
+                            const actionObj = {
+                                icon: 'fas fa-exclamation-triangle',
+                                title: '',
+                                message: 'Server error: ' + error,
+                                url: '',
+                                target: '_blank',
+                                type: 'danger'
+                            };
+                            const actionJSON = JSON.stringify(actionObj, null, 2);
+                            action(actionJSON);
+                        }
+                    });
+                }
+            });
+
+
+            $('#edit_record_month').click(function () {
+                $('#bulk_response').html('');
+                $('#monthAtModal').modal('show');
+            });
+
+            let emp = $('#employee_m');
+            let month = $('#month_m');
+
+            $(emp).on('change', function() {
+                let emp_id = emp.val();
+                let month_id = month.val();
+                if(emp_id != '' && month_id != '' )
+                {
+                    fill_month_table(month_id);
+                }
+            });
+
+            $(month).on('change', function() {
+                let emp_id = emp.val();
+                let month_id = month.val();
+                if(emp_id != '' && month_id != '' )
+                {
+                    fill_month_table(month_id);
+                }
+            });
+
+            function fill_month_table(month_id){
+                //get month attendances for the selected employee
+
+                let save_btn=$("#edit_record_month");
+                let btn_prev_text = save_btn.html();
+                save_btn.prop("disabled", true);
+                save_btn.html('<i class="fa fa-spinner fa-spin"></i> loading...' );
+                let url_text = '{{ url("/attendance_list_for_month_edit") }}';
+
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                })
+                $.ajax({
+                    url: url_text,
+                    type: 'POST',
+                    data: {
+                        'month': month_id,
+                        'emp': emp.val(),
+                    },
+                    success: function(res) {
+                        if (res.status == 1) {
+                            save_btn.html(btn_prev_text);
+                            save_btn.prop("disabled", false);
+
+                            let month_n_y_arr = month_id.split('-');
+                            let num_of_days = daysInMonth(month_n_y_arr[1] ,month_n_y_arr[0]);
+
+                            let t = $('#table_month').DataTable({
+                                "pageLength": 50,
+                                "bDestroy": true,
+                            });
+                            t.clear();
+
+                            //console.log('______________')
+
+                            for(let i = 1; i <= num_of_days; i++)
+                            {
+                                let day = get_day(month_n_y_arr[0], month_n_y_arr[1] ,i);
+                                //console.log( month_n_y_arr[0]+' : '+ month_n_y_arr[1]+ ' : ' + i + ' : ' +day);
+                                t.row.add([
+                                    i,
+                                    day,
+                                    '<input type="datetime-local" class="form-control form-control-sm in_date_time" placeholder="YYYY-MM-DD HH:MM" id="in_'+i+'" name="in_time[]" /> ' +
+                                    '<input type="hidden" value="'+i+'" name="date[]" />' +
+                                    '<input type="hidden" value="" id="uid_'+i+'" name="uid[]" />' +
+                                    '<input type="hidden" value="" id="emp_id_'+i+'" name="emp_id[]" />' +
+                                    '<input type="hidden" value="'+month_id+'-'+i+'" id="date_'+i+'" name="date_e[]" />' +
+                                    '<input type="hidden" value="" id="existing_time_stamp_in_'+i+'" name="existing_time_stamp_in[]" />' +
+                                    '<input type="hidden" value="" id="existing_time_stamp_out_'+i+'" name="existing_time_stamp_out[]" />'+
+                                    '<input type="hidden" value="" id="existing_time_stamp_in_rfc_'+i+'" name="existing_time_stamp_in_rfc[]" />'+
+                                    '<input type="hidden" value="" id="existing_time_stamp_out_rfc_'+i+'" name="existing_time_stamp_out_rfc[]" />',
+                                    '<input type="datetime-local" class="form-control form-control-sm out_date_time" placeholder="YYYY-MM-DD HH:MM" id="out_'+i+'" name="out_time[]" /> '
+                                ]).node().id = i;
+                                t.draw( false );
+                            }
+
+                            //loop through the response and fill the table
+                            let attendances = res.attendances;
+                            $.each(attendances, function(key,value) {
+                                let date_no_arr = value.date.split(' ');
+                                let date_only_arr = date_no_arr[0].split('-');
+                                let date_no = parseInt(date_only_arr[2]);
+
+                                let in_selector = $('#in_'+date_no);
+                                let out_selector = $('#out_'+date_no);
+                                let uid_selector = $('#uid_'+date_no);
+                                let date_selector = $('#date_'+date_no);
+                                let existing_time_stamp_in_selector = $('#existing_time_stamp_in_'+date_no);
+                                let existing_time_stamp_out_selector = $('#existing_time_stamp_out_'+date_no);
+                                let existing_time_stamp_in_rfc_selector = $('#existing_time_stamp_in_rfc_'+date_no);
+                                let existing_time_stamp_out_rfc_selector = $('#existing_time_stamp_out_rfc_'+date_no);
+                                let emp_id_selector = $('#emp_id_'+date_no);
+
+                                uid_selector.val(value.uid);
+                                date_selector.val(value.date);
+                                emp_id_selector.val(value.emp_id);
+
+                                if(value.firsttimestamp != ''){
+                                    in_selector.val(value.firsttime_24);
+                                    existing_time_stamp_in_selector.val(value.firsttimestamp);
+                                    existing_time_stamp_in_rfc_selector.val(value.firsttime_rfc);
+                                }
+
+                                if(value.lasttimestamp != ''){
+                                    out_selector.val(value.lasttime_24);
+                                    existing_time_stamp_out_selector.val(value.lasttimestamp);
+                                    existing_time_stamp_out_rfc_selector.val(value.lasttime_rfc);
+                                }
+
+                            });
+
+                        }else {
+                            var html = '';
+                            if (res.errors) {
+                                html = '<div class="alert alert-danger">';
+                                for (var count = 0; count < res.errors.length; count++) {
+                                    html +=   res.errors[count]+'<br>' ;
+                                }
+                                html += '</div>';
+                            }
+                            $('#bulk_response').html(html);
+
+                            save_btn.prop("disabled", false);
+                            save_btn.html(btn_prev_text);
+                        }
+                    },
+                    error: function(res) {
+                        alert(data);
+                    }
+                });
+
+            }
+
+            function tConvert (time) {
+                // Check correct time format and split into components
+                time = time.toString ().match (/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
+
+                if (time.length > 1) { // If time format correct
+                    time = time.slice (1);  // Remove full string match value
+                    time[5] = +time[0] < 12 ? ' AM' : ' PM'; // Set AM/PM
+                    time[0] = +time[0] % 12 || 12; // Adjust hours
+                }
+                return time.join (''); // return adjusted time or original string
+            }
+
+            function get_day(year, month ,date){
+                const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+                let date_rec = new Date(year+ '-' + month + '-' + date).getDay();
+                return days[date_rec];
+            }
+
+            function daysInMonth (month, year) {
+                return new Date(year, month, 0).getDate();
+            }
+
+            $('#formMonth').on('submit', function (e) {
+                e.preventDefault();
+                let save_btn = $("#btn-save");
+                let btn_prev_text = save_btn.html();
+                //save_btn.prop("disabled", true);
+                save_btn.html('<i class="fa fa-spinner fa-spin"></i> loading...');
+                let formData = new FormData($('#formMonth')[0]);
+                let url_text = '{{ url("/attendance_update_bulk_submit") }}';
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                })
+                $.ajax({
+                    url: url_text,
+                    type: 'POST',
+                    contentType: false,
+                    processData: false,
+                    data: formData,
+                    success: function (res) {
+                        if (res.status == 1) {
+                            const actionObj = {
+                                icon: 'fas fa-save',
+                                title: '',
+                                message: 'Attendance Updated',
+                                url: '',
+                                target: '_blank',
+                                type: 'success'
+                            };
+                            const actionJSON = JSON.stringify(actionObj, null, 2);
+                            actionreload(actionJSON);
+
+                        } else {
+                            const actionObj = {
+                                icon: 'fas fa-warning',
+                                title: '',
+                                message: 'Record Error',
+                                url: '',
+                                target: '_blank',
+                                type: 'danger'
+                            };
+                            const actionJSON = JSON.stringify(actionObj, null, 2);
+                            action(actionJSON);
+                        }
+                    },
+
+                });
+            });
+
+    });
+
+
+
+
+    </script>
+
+@endsection
