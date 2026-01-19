@@ -12,4 +12,9 @@ class ProductionTaskdashboardController extends Controller
 
         return view('Dashboard.productiontask');
     }
+     public function meanmanagement()
+    {
+
+        return view('Dashboard.meal');
+    }
 }

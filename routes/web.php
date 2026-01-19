@@ -1603,6 +1603,28 @@ Route::get('SalaryReconciliation',['uses' => 'LocationPayrollReport@reportSalary
 Route::post('/checkPaySummary', 'LocationPayrollReport@checkPaySummary');
 
 
+Route::get('/meanmanagementdashboard' ,'ProductionTaskdashboardController@meanmanagement')->name('meanmanagementdashboard');
+
+// Meal management Routes
+Route::get('mealtypes', 'MealtypeController@index')->name('mealtypes');
+Route::post('mealtypestore', 'MealtypeController@store')->name('mealtypestore');
+Route::get('mealtypes/{id}/edit', 'MealtypeController@edit')->name('mealtypes.edit');
+Route::post('mealtypeupdate', 'MealtypeController@update')->name('mealtypeupdate');
+Route::get('mealtypes/destroy/{id}', 'MealtypeController@destroy');
+
+Route::get('mealrequests', 'MealrequestController@index')->name('mealrequests');
+Route::post('mealrequestinsert', 'MealrequestController@insert')->name('mealrequestinsert');
+Route::post('mealrequestedit', 'MealrequestController@edit')->name('mealrequestedit');
+Route::post('mealrequestupdate', 'MealrequestController@update')->name('mealrequestupdate');
+Route::post('/mealrequestsdelete' ,'MealrequestController@delete')->name('mealrequestsdelete');
+
+Route::get('mealrecivedmark', 'MealrecivedController@index')->name('mealrecivedmark');
+Route::post('markedmealreceving', 'MealrecivedController@markedmealreceving')->name('markedmealreceving');
+Route::get('mealfinalaaprovel', 'MealrecivedController@finalaaprovel')->name('mealfinalaaprovel');
+Route::post('generatemealdeduction', 'MealrecivedController@generatemealdeduction')->name('generatemealdeduction');
+Route::post('approvemealdeduction', 'MealrecivedController@approvemealdeduction')->name('approvemealdeduction');
+
+
 Route::get('/clear-cache', function() {
     Artisan::call('cache:clear');
     Artisan::call('config:clear');

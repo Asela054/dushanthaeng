@@ -95,11 +95,12 @@
 
         @if($hasproductionPermissions)
             <li>
-            <a href="{{ url('/productiontaskdashboard') }}" id="production_menu_link">
-                <i class="fa-light fa-ballot-check"></i>
-                <span class="links_name">Production & Task</span>
+            <a href="{{ url('/meanmanagementdashboard') }}" id="production_menu_link">
+                <i class="fa-light fa-utensils"></i>
+                <span class="links_name">Meal Management
+                </span>
             </a>
-            <span class="tooltip">Production & Task</span>
+            <span class="tooltip">Meal Management</span>
             </li>
         @endif
 
@@ -433,36 +434,22 @@
             <li>
                 <a href="javascript:void(0);" data-toggle="collapse" data-target="#collapseproduction" aria-expanded="false" aria-controls="collapseproduction">
                     <i class="flaticon-381-background-1"></i>
-                    <span class="links_name">Production & Task<i class="fas fa-angle-down"></i></span>
+                    <span class="links_name">Meal Management<i class="fas fa-angle-down"></i></span>
                 </a>
-                <span class="tooltip">Production & Task</span>
+                <span class="tooltip">Meal Management</span>
                 <div class="collapse" id="collapseproduction" data-parent="#accordionSidenav">
                     <nav class="sidenav-menu-nested nav accordion" id="accordionSubproduction">
                         <a href="javascript:void(0);" data-toggle="collapse" data-target="#collapsdailypro" aria-expanded="false" aria-controls="collapsdailypro" class="py-1">
-                            <span class="links_name">Daily Production Process<i class="fas fa-angle-down"></i></span>
+                            <span class="links_name"> Meal Process <i class="fas fa-angle-down"></i></span>
                         </a>
                         <div class="collapse" id="collapsdailypro" data-parent="#accordionSubproduction">
                             <nav class="sidenav-menu-nested nav">
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('machines')}}">Machines</a>
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('products')}}">Products</a>
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('productionallocation')}}">Employee Allocation</a>
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('productionending')}}">Daily Process Ending</a>
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('employeeproductionreport')}}">Employee Production</a>
+                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('mealtypes')}}">Meal Type</a>
+                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('mealrequests')}}">Meal Requests</a>
+                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('mealrecivedmark')}}">Meal Receiving Mark</a>
                             </nav>
                         </div>
-                        <a href="javascript:void(0);" data-toggle="collapse" data-target="#collapstask" aria-expanded="false" aria-controls="collapstask" class="py-1">
-                            <span class="links_name">Daily Task Process<i class="fas fa-angle-down"></i></span>
-                        </a>
-                        <div class="collapse" id="collapstask" data-parent="#accordionSubproduction">
-                            <nav class="sidenav-menu-nested nav">
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('tasks')}}">Tasks</a>
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('taskallocation')}}">Employee Task Allocation</a>
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('taskending')}}">Daily Task Ending</a>
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('employeetaskreport')}}">Employee Task</a>
-                                <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('employeetaskproductreport')}}">Employee Task & Product</a>
-                            </nav>
-                        </div>
-                         <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('productiontaskapprove')}}" >Production & Task Approval</a>
+                         <a class="nav-link p-0 px-3 py-1 small text-dark" href="{{ route('mealfinalaaprovel')}}" >Meal Deduction Approve</a>
                     </nav>
                 </div>
             </li>
