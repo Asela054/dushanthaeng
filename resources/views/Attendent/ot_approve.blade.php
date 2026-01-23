@@ -58,6 +58,13 @@
                                         <th>D/OT TIME</th>
                                         <th>T/OT TIME</th>
                                         <th>IS HOLIDAY</th>
+                                        <th>Holiday OT Time</th>
+                                        <th>Holiday D/OT Time</th>
+                                        <th>Sunday D/OT</th>
+                                        <th>Poya Ex. OT</th>
+                                        <th>Poya Days</th>
+                                        <th>Mercantile Days</th>
+                                        <th>Sundays</th>
                                     </tr>
                                 </thead>
                                 <tbody class="response">
@@ -161,7 +168,7 @@
 
              $('.response').html(
                 '<tr>' +
-                '<td colspan="13" class="text-center py-5">' +
+                '<td colspan="19" class="text-center py-5">' +
                 '<div class="d-flex flex-column align-items-center">' +
                 '<i class="fas fa-filter fa-3x text-muted mb-3"></i>' +
                 '<h4 class="text-muted mb-2">No Records Found</h4>' +
@@ -236,6 +243,14 @@
                                 ot_data_html += '<td>'+obj.double_hours +'</td>';
                                 ot_data_html += '<td>'+obj.triple_hours+'</td>';
                                 ot_data_html += '<td>'+is_holiday+'</td>';
+
+                                ot_data_html += '<td>'+obj.holiday_ot_hours+'</td>';
+                                ot_data_html += '<td>'+obj.holiday_double_hours+'</td>';
+                                ot_data_html += '<td>'+obj.sunday_double_ot_hours+'</td>';
+                                ot_data_html += '<td>'+obj.poya_extend_ot+'</td>';
+                                ot_data_html += '<td>'+obj.poya_work_days+'</td>';
+                                ot_data_html += '<td>'+obj.mercantile_work_days+'</td>';
+                                ot_data_html += '<td>'+obj.sunday_work_days+'</td>';
                                 ot_data_html += '</tr>';
                             });
                         }
@@ -339,12 +354,30 @@
                             let triple_hours_cell = cb_obj.closest('tr').find('td:eq(10)');
                             let is_holiday_cell = cb_obj.closest('tr').find('td:eq(11)');
 
+                            let holiday_ot_hours_input = row.find('td:eq(12) input');
+                            let holiday_doubleot_hours_input = row.find('td:eq(13) input');
+                            let sunday_dot_input = row.find('td:eq(14) input');
+                            let poya_exot_input = row.find('td:eq(15) input');
+                            let paya_days_input = row.find('td:eq(16) input');
+                            let mercantile_days_input = row.find('td:eq(17) input');
+                            let sunday_days_input = row.find('td:eq(18) input');
+
+
                             let from = from_cell.text();
                             let to = to_cell.text();
                             let hours = hours_cell.text();
                             let double_hours = double_hours_cell.text();
                             let triple_hours = triple_hours_cell.text();
                             let is_holiday = cb_obj.parent().parent().find('td:nth-child(12)');
+
+                            let holiday_ot_hours = holiday_ot_hours_input.val();
+                            let holiday_double_hours = holiday_doubleot_hours_input.val();
+                            let sunday_dot = sunday_dot_input.val();
+                            let poya_exot = poya_exot_input.val();
+                            let paya_days = paya_days_input.val();
+                            let mercantile_days = mercantile_days_input.val();
+                            let sunday_days = sunday_days_input.val();
+
 
                             let ot_data_obj = {
                                 emp_id: emp_id,
@@ -355,7 +388,14 @@
                                 //one_point_five_hours: one_point_five_hours,
                                 double_hours: double_hours,
                                 triple_hours: triple_hours,
-                                is_holiday: is_holiday.text()
+                                holiday_ot_hours: holiday_ot_hours,
+                                holiday_double_hours: holiday_double_hours,
+                                is_holiday: is_holiday.text(),
+                                sunday_dot: sunday_dot,
+                                poya_exot: poya_exot,
+                                paya_days: paya_days,
+                                mercantile_days: mercantile_days,
+                                sunday_days: sunday_days
                             }
 
                             ot_data.push(ot_data_obj);

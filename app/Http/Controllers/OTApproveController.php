@@ -216,7 +216,14 @@ class OTApproveController extends Controller
                 'hours' => $ch['hours'],
                 'double_hours' => $ch['double_hours'],
                 'triple_hours' => $ch['triple_hours'],
+                'holiday_normal_hours' => $ch['holiday_ot_hours'],
+                'holiday_double_hours' => $ch['holiday_double_hours'],
                 'is_holiday' => $ch['is_holiday'],
+                'sunday_work_days' => $ch['sunday_days'],
+                'poya_work_days' => $ch['paya_days'],
+                'mercantile_work_days' => $ch['mercantile_days'],
+                'sunday_double_ot_hrs' => $ch['sunday_dot'],
+                'poya_extended_normal_ot_hrs' => $ch['poya_exot'],
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             );

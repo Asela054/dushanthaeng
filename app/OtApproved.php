@@ -62,5 +62,70 @@ class OtApproved extends Model
 
         return $status;
     }
+
     
+
+     public function get_holiday_double_ot_hours_monthly($emp_id, $month ,$closedate)
+    {
+        $holiday_double_ot_hours = OtApproved::where('emp_id', $emp_id)
+                            ->where('date', 'like', $month.'%')
+                            ->where('date', '<=', $closedate)
+                            ->sum('holiday_double_hours');
+        return $holiday_double_ot_hours;
+    }
+
+     public function get_holiday_ot_hours_monthly($emp_id, $month ,$closedate)
+    {
+        $holiday_ot_hours = OtApproved::where('emp_id', $emp_id)
+                            ->where('date', 'like', $month.'%')
+                            ->where('date', '<=', $closedate)
+                            ->sum('holiday_normal_hours');
+        return $holiday_ot_hours;
+    }
+
+    public function get_sundaywork_days_monthly($emp_id, $month ,$closedate)
+    {
+        $sundaywork_days = OtApproved::where('emp_id', $emp_id)
+                            ->where('date', 'like', $month.'%')
+                            ->where('date', '<=', $closedate)
+                            ->sum('sunday_work_days');
+        return $sundaywork_days;
+    }
+
+    public function get_poyawork_days_monthly($emp_id, $month ,$closedate)
+    {
+        $poyawork_days = OtApproved::where('emp_id', $emp_id)
+                            ->where('date', 'like', $month.'%')
+                            ->where('date', '<=', $closedate)
+                            ->sum('poya_work_days');
+        return $poyawork_days;
+    }
+
+    public function get_mercantilework_days_monthly($emp_id, $month ,$closedate)
+    {
+        $mercantilework_days = OtApproved::where('emp_id', $emp_id)
+                            ->where('date', 'like', $month.'%')
+                            ->where('date', '<=', $closedate)
+                            ->sum('mercantile_work_days');
+        return $mercantilework_days;
+    }
+
+    public function get_sundaydouble_ot_hours_monthly($emp_id, $month ,$closedate)
+    {
+        $sundaydouble_ot_hours = OtApproved::where('emp_id', $emp_id)
+                            ->where('date', 'like', $month.'%')
+                            ->where('date', '<=', $closedate)
+                            ->sum('sunday_double_ot_hrs');
+        return $sundaydouble_ot_hours;
+    }
+
+    public function get_poyaextended_normal_othours_monthly($emp_id, $month ,$closedate)
+    {
+        $poyaextended_normal_othours = OtApproved::where('emp_id', $emp_id)
+                            ->where('date', 'like', $month.'%')
+                            ->where('date', '<=', $closedate)
+                            ->sum('poya_extended_normal_ot_hrs');
+        return $poyaextended_normal_othours;
+    }
+
 }
