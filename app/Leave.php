@@ -177,6 +177,23 @@ class Leave extends Model
     }
 
 
+    public function get_absent_no_pay_days($emp_id, $month ,$closedate){
+
+        $query = DB::table('leaves')
+            ->select(DB::raw('SUM(no_of_days) as total'))
+            ->where('emp_id', '=' , $emp_id)
+            ->where('leave_from', 'like',  $month . '%')
+            ->where('leave_from', '<=', $closedate)
+            ->where('leave_type', '=', '3')
+            ->where('reson', '=', 'ABSENT NOPAY2')
+            ->where('status', '=', 'Approved');
+
+        $no_pay_days_data = $query->get();
+        $no_pay_days = (!empty($no_pay_days_data[0]->total)) ? $no_pay_days_data[0]->total : 0;
+
+        return $no_pay_days;
+    }
+
 
 
 }

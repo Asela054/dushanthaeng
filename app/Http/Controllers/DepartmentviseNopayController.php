@@ -117,7 +117,7 @@ class DepartmentviseNopayController extends Controller
               if ($leave) {
                 $leave->update([
                     'no_of_days' => '1',
-                    'reson' => 'No Covering',
+                    'reson' => 'ABSENT NOPAY2',
                     'leave_approv_person' => Auth::id(),
                     'status' => 'Approved',
                     'updated_at' =>$current_date_time
@@ -131,8 +131,8 @@ class DepartmentviseNopayController extends Controller
             $leave->leave_to = $leavedate;
             $leave->no_of_days = '1';
             $leave->half_short = '0';
-            $leave->reson = 'No Covering';
-            $leave->comment = '';
+            $leave->reson = 'ABSENT NOPAY2';
+            $leave->comment = 'ABSENT NOPAY2';
             $leave->emp_covering = '';
             $leave->leave_approv_person = Auth::id();
             $leave->status = 'Approved';
