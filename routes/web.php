@@ -1622,8 +1622,11 @@ Route::get('mealrecivedmark', 'MealrecivedController@index')->name('mealrecivedm
 Route::post('markedmealreceving', 'MealrecivedController@markedmealreceving')->name('markedmealreceving');
 Route::get('mealfinalaaprovel', 'MealrecivedController@finalaaprovel')->name('mealfinalaaprovel');
 Route::post('generatemealdeduction', 'MealrecivedController@generatemealdeduction')->name('generatemealdeduction');
-Route::post('approvemealdeduction', 'MealrecivedController@approvemealdeduction')->name('approvemealdeduction');
 
+
+Route::get('mealattendancededuction', 'MealattendanceController@index')->name('mealattendancededuction');
+Route::post('generatemealallowancededuction', 'MealattendanceController@generateattendancemealdeduction')->name('generatemealallowancededuction');
+Route::post('approvemealdeduction', 'MealattendanceController@approvemealdeduction')->name('approvemealdeduction');
 
 Route::get('/clear-cache', function() {
     Artisan::call('cache:clear');

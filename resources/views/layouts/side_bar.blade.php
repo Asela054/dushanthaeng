@@ -11,7 +11,7 @@
     $hasAdministratorPermissions = in_array('Access-Administrator', $userPermissions);
     $hasKPIPermissions = in_array('Access-KPI_Managemnt', $userPermissions);
     $hasReportPermissions = in_array('Access-Reports', $userPermissions);
-    $hasproductionPermissions = in_array('Access-Production_Task', $userPermissions);
+    $hasproductionPermissions = in_array('Access-Meal_Management', $userPermissions);
 
 @endphp
 <div class="sidebar" id="sidebar">
