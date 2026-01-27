@@ -24,7 +24,7 @@ class MealattendanceController extends Controller
                 abort(403);
             }
 
-        $remunerations=DB::table('remunerations')->select('*')->get();
+        $remunerations=DB::table('remunerations')->select('*')->where('remuneration_type', 'Addition')->get();
         return view('Meal_management.attendancemealapprovel',compact('remunerations'));
     }
 
@@ -85,6 +85,7 @@ class MealattendanceController extends Controller
             $totalDeduction = 0;
             $totalAllowance = 0;
             $totalBalance = 0;
+            $totalpenelty = 0;
 
             // Calculate attendance days
             $attendanceDays = DB::table('attendances')
@@ -126,7 +127,7 @@ class MealattendanceController extends Controller
 
                 $totalTakenCount += $takenCount;
                 $totalNotTakenCount += $notTakenCount;
-                $totalDeduction += $penaltyDeduction;
+                $totalpenelty += $penaltyDeduction;
                 $totalAllowance += $mealAllowance;
             }
 
@@ -152,7 +153,7 @@ class MealattendanceController extends Controller
                     'attendance_days' => $attendanceDays,
                     'needs_half_deduction' => $needsHalfDeduction,
                     'meal_allowance' => number_format($totalAllowance, 2, '.', ''),
-                    'penalty_deduction' => number_format($totalDeduction - $attendanceDeduction, 2, '.', ''),
+                    'penalty_deduction' => number_format($totalpenelty, 2, '.', ''),
                     'attendance_deduction' => number_format($attendanceDeduction, 2, '.', ''),
                     'total_deduction' => number_format($totalDeduction, 2, '.', ''),
                     'total_balance' => number_format($totalBalance, 2, '.', ''),
