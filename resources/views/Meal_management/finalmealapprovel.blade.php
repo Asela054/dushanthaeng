@@ -11,7 +11,7 @@
                 <div class="page-header-content py-3 px-2">
                     <h1 class="page-header-title ">
                         <div class="page-header-icon"><i class="fa-light fa-utensils"></i></div>
-                        <span>Meal Deduction Approve</span>
+                        <span>Meal Deduction Approve (Penalty)</span>
                     </h1>
                 </div>
             </div>
@@ -385,7 +385,7 @@ $(document).ready(function(){
                                 });
 
                                 $.ajax({
-                                    url: '{!! route("approvemealdeduction") !!}',
+                                    url: '{!! route("approvemealpeneltydeduction") !!}',
                                     type: 'POST',
                                     dataType: "json",
                                     data: {

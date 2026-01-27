@@ -53,7 +53,7 @@
                                     <th>TAKEN COUNT</th>
                                     <th>ALLOWANCE</th>
                                     <th>NOT TAKEN COUNT</th>
-                                    <th>PENALTY DEDUCTION</th>
+                                    <th class="d-none">PENALTY DEDUCTION</th>
                                     <th>ATTENDANCE</th>
                                     <th>ATTENDANCE DEDUCTION</th>
                                     <th>DEDUCTION AMOUNT</th>
@@ -277,7 +277,7 @@ $(document).ready(function(){
                                         <td>${item.total_taken_count}</td>
                                         <td>${item.meal_allowance}</td>
                                         <td>${item.total_not_taken_count}</td>
-                                        <td>${item.penalty_deduction}</td>
+                                        <td class="d-none">${item.penalty_deduction}</td>
                                         <td>${item.attendance_days}</td>
                                         <td>${item.attendance_deduction}</td>
                                         <td>${item.total_deduction}</td>
