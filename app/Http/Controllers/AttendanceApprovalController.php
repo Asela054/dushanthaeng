@@ -390,6 +390,7 @@ class AttendanceApprovalController extends Controller
             $totalholidynopay = 0;
             $totalpayanopay = 0;
             $totalmercantilenopay = 0;
+            $excess_workingdays = 0;
 
             $work_days = (new \App\Attendance)->get_work_days($record->emp_id, $month, $closedate);
             $working_week_days_arr = (new \App\Attendance)->get_working_week_days($record->emp_id, $month, $closedate);
@@ -401,6 +402,10 @@ class AttendanceApprovalController extends Controller
 
             if($working_week_days_confirmed['no_of_days'] != null ){
                 $confirmed_wd = $working_week_days_confirmed['no_of_days'];
+            }
+
+            if($work_days > 25 ){
+                $excess_workingdays = $work_days - 25;
             }
 
             $leave_days = (new \App\Leave)->get_leave_days($record->emp_id, $month , $closedate);
@@ -427,6 +432,7 @@ class AttendanceApprovalController extends Controller
             $poyaextended_normal_othours = (new \App\OtApproved)->get_poyaextended_normal_othours_monthly($record->emp_id, $month, $closedate);
 
 
+            
 
             if(!empty($record->date)){
 				$year_rec = Carbon::createFromFormat('Y-m-d H:i:s', $record->date)->year;
@@ -559,6 +565,7 @@ class AttendanceApprovalController extends Controller
                             'sunday_double_ot_hrs' => 0,
                             'poya_extended_normal_ot_hrs' => 0,
                             'absent_nopay' => 0,
+                            'excess_working_days' => 0,
 							'created_at' => date('Y-m-d H:i:s'),
 							'updated_at' => date('Y-m-d H:i:s')
 						);
@@ -589,6 +596,7 @@ class AttendanceApprovalController extends Controller
                             'sunday_double_ot_hrs' => $sundaydouble_ot_hours,
                             'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
                             'absent_nopay' => $absent_no_pay_days,
+                            'excess_working_days' => $excess_workingdays,
 							'created_at' => date('Y-m-d H:i:s'),
 							'updated_at' => date('Y-m-d H:i:s')
 						);
@@ -620,6 +628,7 @@ class AttendanceApprovalController extends Controller
                             'sunday_double_ot_hrs' => 0,
                             'poya_extended_normal_ot_hrs' => 0,
                             'absent_nopay' => 0,
+                            'excess_working_days' => 0,
 							'created_at' => date('Y-m-d H:i:s'),
 							'updated_at' => date('Y-m-d H:i:s')
 						);
@@ -650,6 +659,7 @@ class AttendanceApprovalController extends Controller
                             'sunday_double_ot_hrs' => $sundaydouble_ot_hours,
                             'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
                             'absent_nopay' => $absent_no_pay_days,
+                            'excess_working_days' => $excess_workingdays,
 							'created_at' => date('Y-m-d H:i:s'),
 							'updated_at' => date('Y-m-d H:i:s')
 						);

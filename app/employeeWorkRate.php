@@ -30,6 +30,7 @@ class employeeWorkRate extends Model
         'sunday_double_ot_hrs',
         'poya_extended_normal_ot_hrs',
         'absent_nopay',
+        'excess_working_days',
         'created_by',
         'updated_by',
         'created_at',
