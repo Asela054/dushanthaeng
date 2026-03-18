@@ -354,13 +354,13 @@
                             let triple_hours_cell = cb_obj.closest('tr').find('td:eq(10)');
                             let is_holiday_cell = cb_obj.closest('tr').find('td:eq(11)');
 
-                            let holiday_ot_hours_input = row.find('td:eq(12) input');
-                            let holiday_doubleot_hours_input = row.find('td:eq(13) input');
-                            let sunday_dot_input = row.find('td:eq(14) input');
-                            let poya_exot_input = row.find('td:eq(15) input');
-                            let paya_days_input = row.find('td:eq(16) input');
-                            let mercantile_days_input = row.find('td:eq(17) input');
-                            let sunday_days_input = row.find('td:eq(18) input');
+                            let holiday_ot_hours_input = cb_obj.find('td:eq(12) input');
+                            let holiday_doubleot_hours_input = cb_obj.find('td:eq(13) input');
+                            let sunday_dot_input = cb_obj.find('td:eq(14) input');
+                            let poya_exot_input = cb_obj.find('td:eq(15) input');
+                            let paya_days_input = cb_obj.find('td:eq(16) input');
+                            let mercantile_days_input = cb_obj.find('td:eq(17) input');
+                            let sunday_days_input = cb_obj.find('td:eq(18) input');
 
 
                             let from = from_cell.text();
