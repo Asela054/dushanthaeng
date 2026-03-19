@@ -243,7 +243,6 @@
                                 ot_data_html += '<td>'+obj.double_hours +'</td>';
                                 ot_data_html += '<td>'+obj.triple_hours+'</td>';
                                 ot_data_html += '<td>'+is_holiday+'</td>';
-
                                 ot_data_html += '<td>'+obj.holiday_ot_hours+'</td>';
                                 ot_data_html += '<td>'+obj.holiday_double_hours+'</td>';
                                 ot_data_html += '<td>'+obj.sunday_double_ot_hours+'</td>';
@@ -346,38 +345,42 @@
                             let emp_id = cb_obj.data('emp_id');
                             let date = cb_obj.data('date');
 
-                            // Updated column references - now getting text content instead of input values
-                            let from_cell = cb_obj.closest('tr').find('td:eq(6)');
-                            let to_cell = cb_obj.closest('tr').find('td:eq(7)');
-                            let hours_cell = cb_obj.closest('tr').find('td:eq(8)');
-                            let double_hours_cell = cb_obj.closest('tr').find('td:eq(9)');
-                            let triple_hours_cell = cb_obj.closest('tr').find('td:eq(10)');
-                            let is_holiday_cell = cb_obj.closest('tr').find('td:eq(11)');
-
-                            let holiday_ot_hours_input = cb_obj.find('td:eq(12) input');
-                            let holiday_doubleot_hours_input = cb_obj.find('td:eq(13) input');
-                            let sunday_dot_input = cb_obj.find('td:eq(14) input');
-                            let poya_exot_input = cb_obj.find('td:eq(15) input');
-                            let paya_days_input = cb_obj.find('td:eq(16) input');
-                            let mercantile_days_input = cb_obj.find('td:eq(17) input');
-                            let sunday_days_input = cb_obj.find('td:eq(18) input');
-
-
-                            let from = from_cell.text();
-                            let to = to_cell.text();
-                            let hours = hours_cell.text();
-                            let double_hours = double_hours_cell.text();
-                            let triple_hours = triple_hours_cell.text();
-                            let is_holiday = cb_obj.parent().parent().find('td:nth-child(12)');
-
-                            let holiday_ot_hours = holiday_ot_hours_input.val();
-                            let holiday_double_hours = holiday_doubleot_hours_input.val();
-                            let sunday_dot = sunday_dot_input.val();
-                            let poya_exot = poya_exot_input.val();
-                            let paya_days = paya_days_input.val();
-                            let mercantile_days = mercantile_days_input.val();
-                            let sunday_days = sunday_days_input.val();
-
+                        // Get the row containing this checkbox
+                        let row = cb_obj.closest('tr');
+                        
+                        // Get text cells
+                        let from_cell = row.find('td:eq(6)');
+                        let to_cell = row.find('td:eq(7)');
+                        let hours_cell = row.find('td:eq(8)');
+                        let double_hours_cell = row.find('td:eq(9)');
+                        let triple_hours_cell = row.find('td:eq(10)');
+                        let is_holiday_cell = row.find('td:eq(11)');
+                        
+                        // Get input fields - FIXED: use row.find instead of cb_obj.find
+                        let holiday_ot_hours_input = row.find('td:eq(12) input');
+                        let holiday_doubleot_hours_input = row.find('td:eq(13) input');
+                        let sunday_dot_input = row.find('td:eq(14) input');
+                        let poya_exot_input = row.find('td:eq(15) input');
+                        let paya_days_input = row.find('td:eq(16) input');
+                        let mercantile_days_input = row.find('td:eq(17) input');
+                        let sunday_days_input = row.find('td:eq(18) input');
+                        
+                        // Get text values
+                        let from = from_cell.text().trim();
+                        let to = to_cell.text().trim();
+                        let hours = hours_cell.text().trim();
+                        let double_hours = double_hours_cell.text().trim();
+                        let triple_hours = triple_hours_cell.text().trim();
+                        let is_holiday = is_holiday_cell.text().trim();
+                        
+                        // Get input values - with fallback to 0 if empty
+                        let holiday_ot_hours = holiday_ot_hours_input.val() || '0';
+                        let holiday_double_hours = holiday_doubleot_hours_input.val() || '0';
+                        let sunday_dot = sunday_dot_input.val() || '0';
+                        let poya_exot = poya_exot_input.val() || '0';
+                        let paya_days = paya_days_input.val() || '0';
+                        let mercantile_days = mercantile_days_input.val() || '0';
+                        let sunday_days = sunday_days_input.val() || '0';
 
                             let ot_data_obj = {
                                 emp_id: emp_id,
@@ -390,13 +393,14 @@
                                 triple_hours: triple_hours,
                                 holiday_ot_hours: holiday_ot_hours,
                                 holiday_double_hours: holiday_double_hours,
-                                is_holiday: is_holiday.text(),
+                                is_holiday: is_holiday,
                                 sunday_dot: sunday_dot,
                                 poya_exot: poya_exot,
                                 paya_days: paya_days,
                                 mercantile_days: mercantile_days,
                                 sunday_days: sunday_days
                             }
+
 
                             ot_data.push(ot_data_obj);
 
@@ -411,10 +415,12 @@
                         $.ajax({
                             url: "{{ route('ot_approve_post') }}",
                             method: "POST",
-                            data: {
+                            data: JSON.stringify({
                                 ot_data: ot_data,
                                 _token: '{{csrf_token()}}'
-                            },
+                            }),
+                            contentType: "application/json",
+                            processData: false,
                             success: function (res) {
                                 if (res.errors) {
                                     const actionObj = {
