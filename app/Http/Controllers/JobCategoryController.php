@@ -49,6 +49,7 @@ class JobCategoryController extends Controller
         $jobcategory->ot_app_hours = $request->input('ot_app_hours');
         $jobcategory->holiday_ot_minimum_min = $request->input('holiday_ot_minimum_min');
         $jobcategory->spe_deduct_pre = $request->input('spe_deduct_pre');
+        $jobcategory->ot_increase_percentage = $request->input('ot_increase_percentage');
         $jobcategory->shift_hours = $request->input('shift_hours');
         $jobcategory->holiday_work_hours = $request->input('holiday_work_hours');
         $jobcategory->week_after_double = $request->input('week_after_double');
@@ -122,6 +123,7 @@ class JobCategoryController extends Controller
             'ot_app_hours' => $request->ot_app_hours,
             'holiday_ot_minimum_min' => $request->holiday_ot_minimum_min,
             'spe_deduct_pre' => $request->spe_deduct_pre,
+            'ot_increase_percentage' => $request->ot_increase_percentage,
             'shift_hours' => $request->shift_hours,
             'holiday_work_hours' => $request->holiday_work_hours,
             'week_after_double' => $request->week_after_double,
