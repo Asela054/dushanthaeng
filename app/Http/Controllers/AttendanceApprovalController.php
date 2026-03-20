@@ -538,8 +538,10 @@ class AttendanceApprovalController extends Controller
 						}
 					}
 	
-					$totalweekworkshours = $totalworkHours -($normal_ot_hours + $double_ot_hours);
-	
+					$totalweekworkshours = round($totalworkHours - ($normal_ot_hours + $double_ot_hours), 2);
+
+                    
+                    
 					if($salarystatus == 1 &&  $totalweekworkshours==0 && $empstatus == 1){
 						$data3 = array(
 							'emp_id' => $record->emp_auto_id,
@@ -572,34 +574,36 @@ class AttendanceApprovalController extends Controller
 						employeeWorkRate::create($data3);
 					}
 					else{   
+                     
+                   
 						$datasql = array(
-							'emp_id' => $record->emp_auto_id,
-							'emp_etfno' => $record->emp_id,
-							'work_year' => $year_rec,
-							'work_month' => $month_rec,
-							'work_days' => $work_days,
-							'working_week_days' => $work_days,
-							'work_hours' => $totalweekworkshours,
-							'leave_days' => $leave_days,
-							'nopay_days' => $no_pay_days,
-							'normal_rate_otwork_hrs' => $normal_ot_hours,
-							'double_rate_otwork_hrs' => $double_ot_hours,
-							'triple_rate_otwork_hrs' => $triple_ot_hours,
-                            'holiday_nopay_days' => $totalholidynopay,
-                            'holiday_normal_ot_hrs' => $holiday_ot_hours,
-                            'holiday_double_ot_hrs' => $holiday_double_ot_hours,
-                            'sunday_work_days' => $sundaywork_days,
-                            'poya_work_days' => $poyawork_days,
-                            'poya_nopay_days' => $totalpayanopay,
-                            'mercantile_work_days' => $mercantilework_days,
-                            'mercantile_nopay_days' => $totalmercantilenopay,
-                            'sunday_double_ot_hrs' => $sundaydouble_ot_hours,
-                            'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
-                            'absent_nopay' => $absent_no_pay_days,
-                            'excess_working_days' => $excess_workingdays,
-							'created_at' => date('Y-m-d H:i:s'),
-							'updated_at' => date('Y-m-d H:i:s')
-						);
+                                    'emp_id' => $record->emp_auto_id,
+                                    'emp_etfno' => $record->emp_id,
+                                    'work_year' => $year_rec,
+                                    'work_month' => $month_rec,
+                                    'work_days' => $work_days,
+                                    'working_week_days' => $work_days,
+                                    'work_hours' => $totalweekworkshours, // Add this line
+                                    'leave_days' => $leave_days,
+                                    'nopay_days' => $no_pay_days,
+                                    'normal_rate_otwork_hrs' => $normal_ot_hours,
+                                    'double_rate_otwork_hrs' => $double_ot_hours,
+                                    'triple_rate_otwork_hrs' => $triple_ot_hours,
+                                    'holiday_nopay_days' => $totalholidynopay,
+                                    'holiday_normal_ot_hrs' => $holiday_ot_hours,
+                                    'holiday_double_ot_hrs' => $holiday_double_ot_hours,
+                                    'sunday_work_days' => $sundaywork_days,
+                                    'poya_work_days' => $poyawork_days,
+                                    'poya_nopay_days' => $totalpayanopay,
+                                    'mercantile_work_days' => $mercantilework_days,
+                                    'mercantile_nopay_days' => $totalmercantilenopay,
+                                    'sunday_double_ot_hrs' => $sundaydouble_ot_hours,
+                                    'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
+                                    'absent_nopay' => $absent_no_pay_days,
+                                    'excess_working_days' => $excess_workingdays,
+                                    'created_at' => date('Y-m-d H:i:s'),
+                                    'updated_at' => date('Y-m-d H:i:s')
+                                );
 						employeeWorkRate::create($datasql);
 					}
 				}else{//Monthly Salary
