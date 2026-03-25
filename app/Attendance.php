@@ -497,940 +497,141 @@ class Attendance extends Model
         $triple_ot_hours=0;
         $holidayot = 0;
         $holidaydouble = 0;
-
         $ot_hours_morning = 0;
         $double_ot_hours_morning = 0;
         $one_point_five_ot_hours_morning=0;
         $triple_ot_hours_morning=0;
-
-        if($date_period == 0){
-            $is_sunday = false;
-            $is_holiday = false;
-            $is_double = false;
-            $is_one_point_five = false;
-
-            $date = $record_date;
-            $day = $date->dayOfWeek;
-
-            $shift_start =  Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_start_);
-            $shift_end = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_end_);
-            $s_date = $date->format('Y-m-d');
-
-            $holiday_check = Holiday::where('date', $s_date)
-                // ->where('work_level', '=', '2')
-                ->first();
-
-            if(!empty($holiday_check)){//Calender mark holiday
-                $is_holiday = true;
-                $is_double = true;
-
-                if($holidayotstart==1){$ot_minutes = $ot_from->diffInMinutes($ot_to);}
-                else{
-                    if($shift_start<$ot_from){$ot_minutes = $ot_from->diffInMinutes($ot_to);}
-                    else{$ot_minutes = $shift_start->diffInMinutes($ot_to);}
-                }                
-
-                if($lunchholidaystatus==1){
-                    $ot_minutes = $ot_minutes - $lunchdeductmin;
-                }
-
-                if($spedeductpresent>0){
-                    $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                }
-
-                if($holiday_check->work_level==1){
-                    if($ot_minutes >= $otminimumminits){
-                        $ot_hours = 0;
-                        $double_ot_hours = 0;
-                        $one_point_five_ot_hours=0;
-                        $ot_hours = round($ot_minutes / 60, 2);
-                        $total_ot_hours += $ot_hours;
-                    }
-                }
-                else{
-                    if($ot_minutes >= $otminimumminits){
-                        $ot_hours = 0;
-                        $double_ot_hours = 0;
-                        $one_point_five_ot_hours=0;
-                        $double_ot_hours = round($ot_minutes / 60, 2);
-                        $total_ot_hours_double += $double_ot_hours;
-                    }
-                }
-            }
-            else{//Normal week day
-                if($day==0){//Sunday
-                    if($emp->is_sun_ot_type_as_act == 1){//As act
-                        $is_sunday = true;
-                        $is_double = true;
-
-                        $ot_from = $on_time;
-                        $ot_to = $off_time;
-
-                        $ot_minutes = $ot_from->diffInMinutes($ot_to);
-
-                        if($lunchholidaystatus==1){
-                            $ot_minutes = $ot_minutes - $lunchdeductmin;
-                        }
-
-                        if($spedeductpresent>0){
-                            $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                        }
-
-                        if($ot_minutes >= $otminimumminits){
-                            $ot_hours = 0;
-                            $double_ot_hours = 0;
-                            $one_point_five_ot_hours=0;
-                            $double_ot_hours = round($ot_minutes / 60, 2);
-                            $total_ot_hours_double += $double_ot_hours;
-                        }
-                    }
-                    else if($emp->is_sun_ot_type_as_act == 0){//As custom
-                        if($emp->custom_sunday_ot_type == 1 ){//Type 1
-                            $ot_from = $on_time;
-                            $ot_to = $off_time;
-    
-                            $seven_am = Carbon::parse($begining_checkin);
-                            $seven_am_time = $seven_am->format('H:i');
-                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-    
-                            $eight_am = Carbon::parse($onduty_time);
-                            $eight_am_time = $eight_am->format('H:i');
-                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-    
-                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                $ot_from =  $today_eight;
-                            }
-    
-                            $twelve_pm = Carbon::parse($earlystart);
-                            $twelve_pm_time = $twelve_pm->format('H:i');
-                            $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
-    
-                            $one_pm = Carbon::parse($earlyend);
-                            $one_pm_time = $one_pm->format('H:i');
-                            $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
-    
-                            if($ot_to >=$today_twelve && $ot_to < $today_one ){
-                                $ot_to = $today_twelve;
-                            }
-    
-                            if($lunchdeductstatus==1){
-                                $deducthours=round($lunchdeductmin / 60, 2);
-                                if($ot_to >= $today_one){
-                                    $ot_to->subHours($deducthours);
-                                }
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($lunchdeductstatus==1){
-                                $deducthours=round($lunchdeductmin / 60, 2);
-                                if($ot_to >= $today_one){
-                                    $ot_to->addHours($deducthours);
-                                }
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){
-                                $ot_hours = 0;
-                                $double_ot_hours=0;
-                                $one_point_five_ot_hours = 0;
-
-                                if($sunafterdoublehours>0){
-                                    $ot_hours = round($ot_minutes / 60, 2);
-                                    $double_ot_hours=round(($ot_hours-$sunafterdoublehours), 2);
-                                    $ot_hours = $sunafterdoublehours;
-                                    $total_ot_hours += ($ot_hours+$double_ot_hours);
-                                }
-                                else{
-                                    $ot_hours = round($ot_minutes / 60, 2);
-                                    $total_ot_hours += $ot_hours;
-                                }
-                            }
-                        }
-                        else if($emp->custom_sunday_ot_type == 2 ){//Type 2
-                            $is_double = true;
-                            $ot_from = $on_time;
-                            $ot_to = $off_time;
-    
-                            $seven_am = Carbon::parse($begining_checkin);
-                            $seven_am_time = $seven_am->format('H:i');
-                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-    
-                            $eight_am = Carbon::parse($onduty_time);
-                            $eight_am_time = $eight_am->format('H:i');
-                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-    
-                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                $ot_from =  $today_eight;
-                            }
-    
-                            $twelve_pm = Carbon::parse($earlystart);
-                            $twelve_pm_time = $twelve_pm->format('H:i');
-                            $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
-    
-                            $one_pm = Carbon::parse($earlyend);
-                            $one_pm_time = $one_pm->format('H:i');
-                            $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
-    
-                            if($ot_to >=$today_twelve && $ot_to < $today_one ){
-                                $ot_to = $today_twelve;
-                            }
-    
-                            if($lunchdeductstatus==1){
-                                $deducthours=round($lunchdeductmin / 60, 2);
-                                if($ot_to >= $today_one){
-                                    $ot_to->subHours($deducthours);
-                                }
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($lunchdeductstatus==1){
-                                $deducthours=round($lunchdeductmin / 60, 2);
-                                if($ot_to >= $today_one){
-                                    $ot_to->addHours($deducthours);
-                                }
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){
-                                $ot_hours = 0;
-                                $double_ot_hours=0;
-                                $one_point_five_ot_hours = 0;
-                                $double_ot_hours = round($ot_minutes / 60, 2);
-                                $total_ot_hours_double += $double_ot_hours;
-                            }
-    
-                        }
-                    }
-                    else if($emp->is_sun_ot_type_as_act == 2){//As normal working day
-                        $ot_hours = 0;
-                        $double_ot_hours=0;
-                        $one_point_five_ot_hours = 0;
-                        $ot_hours_morning = 0;
-                        $double_ot_hours_morning=0;
-                        $one_point_five_ot_hours_morning = 0;
-
-                        if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
-                            $ot_from = $on_time;
-                            $ot_to = $shift_start;
-    
-                            $seven_am = Carbon::parse($begining_checkin);
-                            $seven_am_time = $seven_am->format('H:i');
-                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-    
-                            $eight_am = Carbon::parse($onduty_time);
-                            $eight_am_time = $eight_am->format('H:i');
-                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-    
-                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                $ot_from = $today_eight;
-                            }
-                            else{
-                                $ot_from =  $ot_from;
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){                                
-                                if($is_double){
-                                    $double_ot_hours_morning += round($ot_minutes / 60, 2);
-                                }elseif ($is_one_point_five){
-                                    $one_point_five_ot_hours_morning += round($ot_minutes / 60, 2);
-                                }else{
-                                    $ot_hours_morning += round($ot_minutes / 60, 2);
-                                }    
-                            }
-                            
-                        }
-
-                        $total_ot_hours_double += $double_ot_hours_morning;
-                        $total_ot_hours_one_point_five += $one_point_five_ot_hours_morning;
-                        $total_ot_hours += $ot_hours_morning;
-                        
-                        if($off_time > $shift_end  && $totalworkinghours>=$afterothours){ //Evening ot
-                            $ot_from = $shift_end;
-    
-                            $next_date = $date->copy()->addDays(1);
-                            $next_date = $next_date->format('Y-m-d');
-                            $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start_);
-    
-                            if($next_date_morning_shift_start < $off_time ){
-                                $ot_to = $next_date_morning_shift_start;
-                            }else{
-                                $ot_to = $off_time;
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){
-                                if($is_double){
-                                    $double_ot_hours += round($ot_minutes / 60, 2);
-                                }elseif ($is_one_point_five){
-                                    $one_point_five_ot_hours += round($ot_minutes / 60, 2);
-                                }else{
-                                    $ot_hours += round($ot_minutes / 60, 2);
-                                }    
-                            }
-
-                            if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
-                                $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
-                                $ot_hours=$weekafterdouble;
-                            }    
-                        }
-
-                        $total_ot_hours_double += $double_ot_hours;
-                        $total_ot_hours_one_point_five += $one_point_five_ot_hours;
-                        $total_ot_hours += $ot_hours;
-                    }
-                }
-                else if($day==6){//Saturday
-                    if($emp->is_sat_ot_type_as_act == 1){//As act
-                        $saturday_on_duty_time = $shift->saturday_onduty_time;
-                        $saturday_off_duty_time = $shift->saturday_offduty_time;
-
-                        $shift_start = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$saturday_on_duty_time);
-                        $shift_end = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$saturday_off_duty_time);
-
-                        $ot_hours = 0;
-                        $double_ot_hours=0;
-                        $one_point_five_ot_hours = 0;
-                        $ot_hours_morning = 0;
-                        $double_ot_hours_morning=0;
-                        $one_point_five_ot_hours_morning = 0;                        
-
-                        if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
-                            $ot_from = $on_time;
-                            $ot_to = $shift_start;
-    
-                            $seven_am = Carbon::parse($begining_checkin);
-                            $seven_am_time = $seven_am->format('H:i');
-                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-    
-                            $eight_am = Carbon::parse($onduty_time);
-                            $eight_am_time = $eight_am->format('H:i');
-                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-    
-                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                $ot_from = $today_eight;
-                            }
-                            else{
-                                $ot_from =  $ot_from;
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){                                
-                                if($is_double){
-                                    $double_ot_hours_morning += round($ot_minutes / 60, 2);
-                                }elseif ($is_one_point_five){
-                                    $one_point_five_ot_hours_morning += round($ot_minutes / 60, 2);
-                                }else{
-                                    $ot_hours_morning += round($ot_minutes / 60, 2);
-                                }    
-                            }
-                            
-                        }
-
-                        $total_ot_hours_double += $double_ot_hours_morning;
-                        $total_ot_hours_one_point_five += $one_point_five_ot_hours_morning;
-                        $total_ot_hours += $ot_hours_morning;
-
-                        if($off_time > $shift_end ){//Evening ot
-                            $ot_from = $shift_end;
-
-                            $next_date = $date->copy()->addDays(1);
-                            $next_date = $next_date->format('Y-m-d');
-                            $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start->format('H:i:s'));
-
-                            if($next_date_morning_shift_start < $off_time ){
-                                $ot_to = $next_date_morning_shift_start;
-                            }else{
-                                $ot_to = $off_time;
-                            }
-
-                            $ot_from = Carbon::parse($ot_from);
-                            $ot_to = Carbon::parse($ot_to);
-                            $ot_from = Carbon::parse($ot_from)->setDate($record_date->year,$record_date->month,$record_date->day);
-
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-                           
-                            if($ot_minutes >= $otminimumminits){
-                                if($is_double){
-                                    $double_ot_hours += round($ot_minutes / 60, 2);
-                                }elseif ($is_one_point_five){
-                                    $one_point_five_ot_hours += round($ot_minutes / 60, 2);
-                                }else{
-                                    $ot_hours += round($ot_minutes / 60, 2);
-                                }    
-                            }                          
-                        }
-
-                        $total_ot_hours_double += $double_ot_hours;
-                        $total_ot_hours_one_point_five += $one_point_five_ot_hours;
-                        $total_ot_hours += $ot_hours;
-                    }
-                    else if($emp->is_sat_ot_type_as_act == 0){//As custom
-                        if($emp->custom_saturday_ot_type == 1 ){//Type 1
-                            $ot_from = $on_time;
-                            $ot_to = $off_time;
-    
-                            $seven_am = Carbon::parse($begining_checkin);
-                            $seven_am_time = $seven_am->format('H:i');
-                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-    
-                            $eight_am = Carbon::parse($onduty_time);
-                            $eight_am_time = $eight_am->format('H:i');
-                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-    
-                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                $ot_from =  $today_eight;
-                            }
-    
-                            $twelve_pm = Carbon::parse($earlystart);
-                            $twelve_pm_time = $twelve_pm->format('H:i');
-                            $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
-    
-                            $one_pm = Carbon::parse($earlyend);
-                            $one_pm_time = $one_pm->format('H:i');
-                            $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
-    
-                            if($ot_to >=$today_twelve && $ot_to < $today_one ){
-                                $ot_to = $today_twelve;
-                            }
-    
-                            if($lunchdeductstatus==1){
-                                $deducthours=round($lunchdeductmin / 60, 2);
-                                if($ot_to >= $today_one){
-                                    $ot_to->subHours($deducthours);
-                                }
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($lunchdeductstatus==1){
-                                $deducthours=round($lunchdeductmin / 60, 2);
-                                if($ot_to >= $today_one){
-                                    $ot_to->addHours($deducthours);
-                                }
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){
-                                $ot_hours = 0;
-                                $double_ot_hours=0;
-                                $one_point_five_ot_hours = 0;
-                                $ot_hours = round($ot_minutes / 60, 2);
-                                $total_ot_hours += $ot_hours;
-                            }
-                        }
-                        else if($emp->custom_saturday_ot_type == 2 ){//Type 2
-                            $is_double = true;
-                            $ot_from = $on_time;
-                            $ot_to = $off_time;
-    
-                            $seven_am = Carbon::parse($begining_checkin);
-                            $seven_am_time = $seven_am->format('H:i');
-                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-    
-                            $eight_am = Carbon::parse($onduty_time);
-                            $eight_am_time = $eight_am->format('H:i');
-                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-    
-                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                $ot_from =  $today_eight;
-                            }
-    
-                            $twelve_pm = Carbon::parse($earlystart);
-                            $twelve_pm_time = $twelve_pm->format('H:i');
-                            $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
-    
-                            $one_pm = Carbon::parse($earlyend);
-                            $one_pm_time = $one_pm->format('H:i');
-                            $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
-    
-                            if($ot_to >=$today_twelve && $ot_to < $today_one ){
-                                $ot_to = $today_twelve;
-                            }
-    
-                            if($lunchdeductstatus==1){
-                                $deducthours=round($lunchdeductmin / 60, 2);
-                                if($ot_to >= $today_one){
-                                    $ot_to->subHours($deducthours);
-                                }
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($lunchdeductstatus==1){
-                                $deducthours=round($lunchdeductmin / 60, 2);
-                                if($ot_to >= $today_one){
-                                    $ot_to->addHours($deducthours);
-                                }
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){
-                                $ot_hours = 0;
-                                $double_ot_hours=0;
-                                $one_point_five_ot_hours = 0;
-                                $double_ot_hours = round($ot_minutes / 60, 2);
-                                $total_ot_hours_double += $double_ot_hours;
-                            }
-    
-                        }
-                    }
-                    if($emp->is_sat_ot_type_as_act == 2){//As normal working day
-                        $ot_hours = 0;
-                        $double_ot_hours=0;
-                        $one_point_five_ot_hours = 0;
-                        $ot_hours_morning = 0;
-                        $double_ot_hours_morning=0;
-                        $one_point_five_ot_hours_morning = 0;                        
-
-                        if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
-                            $ot_from = $on_time;
-                            $ot_to = $shift_start;
-    
-                            $seven_am = Carbon::parse($begining_checkin);
-                            $seven_am_time = $seven_am->format('H:i');
-                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-    
-                            $eight_am = Carbon::parse($onduty_time);
-                            $eight_am_time = $eight_am->format('H:i');
-                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-    
-                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                $ot_from = $today_eight;
-                            }
-                            else{
-                                $ot_from =  $ot_from;
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){                                
-                                if($is_double){
-                                    $double_ot_hours_morning += round($ot_minutes / 60, 2);
-                                }elseif ($is_one_point_five){
-                                    $one_point_five_ot_hours_morning += round($ot_minutes / 60, 2);
-                                }else{
-                                    $ot_hours_morning += round($ot_minutes / 60, 2);
-                                }    
-                            }
-                            
-                        }
-
-                        $total_ot_hours_double += $double_ot_hours_morning;
-                        $total_ot_hours_one_point_five += $one_point_five_ot_hours_morning;
-                        $total_ot_hours += $ot_hours_morning;
-                        
-                        if($off_time > $shift_end  && $totalworkinghours>=$afterothours){ //Evening ot
-                            $ot_from = $shift_end;
-    
-                            $next_date = $date->copy()->addDays(1);
-                            $next_date = $next_date->format('Y-m-d');
-                            $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start_);
-    
-                            if($next_date_morning_shift_start < $off_time ){
-                                $ot_to = $next_date_morning_shift_start;
-                            }else{
-                                $ot_to = $off_time;
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){    
-                                if($is_double){
-                                    $double_ot_hours += round($ot_minutes / 60, 2);
-                                }elseif ($is_one_point_five){
-                                    $one_point_five_ot_hours += round($ot_minutes / 60, 2);
-                                }else{
-                                    $ot_hours += round($ot_minutes / 60, 2);
-                                }    
-                            } 
-                            
-                            if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
-                                $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
-                                $ot_hours=$weekafterdouble;
-                            }   
-                        }
-
-                        $total_ot_hours_double += $double_ot_hours;
-                        $total_ot_hours_one_point_five += $one_point_five_ot_hours;
-                        $total_ot_hours += $ot_hours;
-                    }
-                }
-                else{
-                    if(!empty($spe_day_1_day)){//Special day ot
-                        if($day==$spe_day_1_day){
-                            if($spe_day_1_type == 0){//As custom
-                                if($spe_day_1_rate == 1 ){//Type 1
-                                    $ot_from = $on_time;
-                                    $ot_to = $off_time;
-            
-                                    $seven_am = Carbon::parse($begining_checkin);
-                                    $seven_am_time = $seven_am->format('H:i');
-                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-            
-                                    $eight_am = Carbon::parse($onduty_time);
-                                    $eight_am_time = $eight_am->format('H:i');
-                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-            
-                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                        $ot_from =  $today_eight;
-                                    }
-            
-                                    $twelve_pm = Carbon::parse($earlystart);
-                                    $twelve_pm_time = $twelve_pm->format('H:i');
-                                    $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
-            
-                                    $one_pm = Carbon::parse($earlyend);
-                                    $one_pm_time = $one_pm->format('H:i');
-                                    $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
-            
-                                    if($ot_to >=$today_twelve && $ot_to < $today_one ){
-                                        $ot_to = $today_twelve;
-                                    }
-            
-                                    if($lunchdeductstatus==1){
-                                        $deducthours=round($lunchdeductmin / 60, 2);
-                                        if($ot_to >= $today_one){
-                                            $ot_to->subHours($deducthours);
-                                        }
-                                    }
-            
-                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                                    if($spedeductpresent>0){
-                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                                    }
-            
-                                    if($lunchdeductstatus==1){
-                                        $deducthours=round($lunchdeductmin / 60, 2);
-                                        if($ot_to >= $today_one){
-                                            $ot_to->addHours($deducthours);
-                                        }
-                                    }
-            
-                                    if($ot_minutes >= $otminimumminits){
-                                        $ot_hours = 0;
-                                        $double_ot_hours=0;
-                                        $one_point_five_ot_hours = 0;
-                                        $ot_hours = round($ot_minutes / 60, 2);
-                                        $total_ot_hours += $ot_hours;
-                                    }
-                                }
-                                else if($spe_day_1_rate == 2 ){//Type 2
-                                    $is_double = true;
-                                    $ot_from = $on_time;
-                                    $ot_to = $off_time;
-            
-                                    $seven_am = Carbon::parse($begining_checkin);
-                                    $seven_am_time = $seven_am->format('H:i');
-                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-            
-                                    $eight_am = Carbon::parse($onduty_time);
-                                    $eight_am_time = $eight_am->format('H:i');
-                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-            
-                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                        $ot_from =  $today_eight;
-                                    }
-            
-                                    $twelve_pm = Carbon::parse($earlystart);
-                                    $twelve_pm_time = $twelve_pm->format('H:i');
-                                    $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
-            
-                                    $one_pm = Carbon::parse($earlyend);
-                                    $one_pm_time = $one_pm->format('H:i');
-                                    $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
-            
-                                    if($ot_to >=$today_twelve && $ot_to < $today_one ){
-                                        $ot_to = $today_twelve;
-                                    }
-            
-                                    if($lunchdeductstatus==1){
-                                        $deducthours=round($lunchdeductmin / 60, 2);
-                                        if($ot_to >= $today_one){
-                                            $ot_to->subHours($deducthours);
-                                        }
-                                    }
-            
-                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                                    if($spedeductpresent>0){
-                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                                    }
-            
-                                    if($lunchdeductstatus==1){
-                                        $deducthours=round($lunchdeductmin / 60, 2);
-                                        if($ot_to >= $today_one){
-                                            $ot_to->addHours($deducthours);
-                                        }
-                                    }
-            
-                                    if($ot_minutes >= $otminimumminits){
-                                        $ot_hours = 0;
-                                        $double_ot_hours=0;
-                                        $one_point_five_ot_hours = 0;
-                                        $double_ot_hours = round($ot_minutes / 60, 2);
-                                        $total_ot_hours_double += $double_ot_hours;
-                                    }
-            
-                                }
-                            }
-                        }
-                    }
-                    else{ //Normal ot
-                        $ot_hours = 0;
-                        $double_ot_hours=0;
-                        $one_point_five_ot_hours = 0;
-                        $ot_hours_morning = 0;
-                        $double_ot_hours_morning=0;
-                        $one_point_five_ot_hours_morning = 0;
-
-                        if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
-                            $ot_from = $on_time;
-                            $ot_to = $shift_start;
-    
-                            $seven_am = Carbon::parse($begining_checkin);
-                            $seven_am_time = $seven_am->format('H:i');
-                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-                            
-                            $eight_am = Carbon::parse($onduty_time);
-                            $eight_am_time = $eight_am->format('H:i');
-                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-                            
-                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                $ot_from = $today_eight;
-                            }
-                            else{
-                                $ot_from =  $ot_from;
-                            }
-                            
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-
-                            if($ot_minutes >= $otminimumminits){                                
-                                if($is_double){
-                                    $double_ot_hours_morning += round($ot_minutes / 60, 2);
-                                }elseif ($is_one_point_five){
-                                    $one_point_five_ot_hours_morning += round($ot_minutes / 60, 2);
-                                }else{
-                                    $ot_hours_morning += round($ot_minutes / 60, 2);
-                                }    
-                            }                            
-                        }
-
-                        $total_ot_hours_double += $double_ot_hours_morning;
-                        $total_ot_hours_one_point_five += $one_point_five_ot_hours_morning;
-                        $total_ot_hours += $ot_hours_morning;
-
-                        if($off_time > $shift_end && $totalworkinghours>=$afterothours){ //Evening ot
-                            $ot_from = $shift_end;
-    
-                            $next_date = $date->copy()->addDays(1);
-                            $next_date = $next_date->format('Y-m-d');
-                            $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start->format('h:i A'));
-    
-                            if($next_date_morning_shift_start < $off_time ){
-                                $ot_to = $next_date_morning_shift_start;
-                            }else{
-                                $ot_to = $off_time;
-                            }
-    
-                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
-                            if($spedeductpresent>0){
-                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                            }
-    
-                            if($ot_minutes >= $otminimumminits){    
-                                if($is_double){
-                                    $double_ot_hours += round($ot_minutes / 60, 2);
-                                }elseif ($is_one_point_five){
-                                    $one_point_five_ot_hours += round($ot_minutes / 60, 2);
-                                }else{
-                                    $ot_hours += round($ot_minutes / 60, 2);
-                                }
-                            }
-
-                            if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
-                                $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
-                                $ot_hours=$weekafterdouble;
-                            }   
-                        }
-
-                        $total_ot_hours_double += $double_ot_hours;
-                        $total_ot_hours_one_point_five += $one_point_five_ot_hours;
-                        $total_ot_hours += $ot_hours;
-                    }
-                }
-            }
-
-            $coveringend = null;
-            $coveringhours = 0;
-
-            $fromtime =0;
-            $othours =0;
-
-
-            $coveringdetail = DB::table('coverup_details')
-            ->select('coverup_details.*') 
-            ->where('emp_id', $emp_id)
-            ->whereDate('date', $record_date)
-            ->first();
-
-            if ($coveringdetail) {
-                $coveringend = Carbon::parse($coveringdetail->end_time);
-                $coveringend = $record_date->copy()->setTime($coveringend->hour, $coveringend->minute, $coveringend->second);
-                $coveringhours = $coveringdetail->covering_hours;
-            }
-
-            if($ot_hours > 0 && $coveringhours > 0){
-
-                $newtotalot = $ot_hours - $coveringhours;
-                $fromtime = $coveringend;
-                $othours = $newtotalot;
-              
-            }else{
-
-                $fromtime = Carbon::parse($ot_from);
-                $othours = $ot_hours;
-            }
-
-            //Morning OT
-            if($ot_hours_morning>0 | $double_ot_hours_morning>0 | $triple_ot_hours_morning>0 | $holidayot>0 | $holidaydouble>0){
-                $ob = array(
-                    'emp_id' => $emp_id,
-                    'etf_no' => $emp->emp_etfno,
-                    'name' => $emp->emp_name_with_initial,
-                    'date' => $record_date->format('Y-m-d'),
-                    'day_name' => $date->format('l'),
-                    'from' => $on_time->format('Y-m-d h:i A'),
-                    'from_24' => $on_time->format('Y-m-d H:i'),
-                    'from_rfc' => $on_time->format('Y-m-d\TH:i:s'),
-                    'to' => $shift_start->format('Y-m-d h:i A'),
-                    'to_24' => $shift_start->format('Y-m-d H:i'),
-                    'to_rfc' => $shift_start->format('Y-m-d\TH:i:s'),
-                    'hours' => $ot_hours_morning,
-                    'double_hours' => $double_ot_hours_morning,
-                    'one_point_five_ot_hours' => $one_point_five_ot_hours,
-                    'triple_hours' => $triple_ot_hours_morning,
-                    'holiday_ot_hours' => $holidayot,
-                    'holiday_double_hours' => $holidaydouble,
-                    'is_holiday' => $is_holiday,
-                );
-                array_push($ot_breakdown, $ob);
-            }
-            //Evening OT
-            if($othours>0 | $double_ot_hours>0 | $triple_ot_hours>0 | $holidayot>0 | $holidaydouble>0){
-                $ob = array(
-                    'emp_id' => $emp_id,
-                    'etf_no' => $emp->emp_etfno,
-                    'name' => $emp->emp_name_with_initial,
-                    'date' => $record_date->format('Y-m-d'),
-                    'day_name' => $date->format('l'),
-                    'from' => $fromtime->format('Y-m-d h:i A'),
-                    'from_24' => $fromtime->format('Y-m-d H:i'),
-                    'from_rfc' => $fromtime->format('Y-m-d\TH:i:s'),
-                    'to' => $ot_to->format('Y-m-d h:i A'),
-                    'to_24' => $ot_to->format('Y-m-d H:i'),
-                    'to_rfc' => $ot_to->format('Y-m-d\TH:i:s'),
-                    'hours' => $othours,
-                    'double_hours' => $double_ot_hours,
-                    'one_point_five_ot_hours' => $one_point_five_ot_hours,
-                    'triple_hours' => $triple_ot_hours,
-                    'holiday_ot_hours' => $holidayot,
-                    'holiday_double_hours' => $holidaydouble,
-                    'is_holiday' => $is_holiday,
-                );
-                array_push($ot_breakdown, $ob);
-            }            
-        }
-        else{
-
-            //this condition not continued developing since multioffset has no longer shifts than 1 day.
-            for($i = 0; $i < $date_period; $i++){
-                $date = $record_date->copy()->addDays($i);
-                $day = $date->dayOfWeek;
-
+        $poya_work_days=0;
+        $sunday_work_days=0;
+        $mercantile_work_days=0;
+        $sunday_double_ot_hours=0;
+        $poya_extend_ot=0;
+        
+        if($on_time<$off_time){
+            if($date_period == 0){
                 $is_sunday = false;
                 $is_holiday = false;
                 $is_double = false;
                 $is_one_point_five = false;
 
-                // $date = $record_date;
-                // $day = $date->dayOfWeek;
+                $date = $record_date;
+                $day = $date->dayOfWeek;            
 
                 $shift_start =  Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_start_);
                 $shift_end = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_end_);
+                if ($shift->id==2) {
+                    $shift_end->addDay();
+                }
+                
                 $s_date = $date->format('Y-m-d');
 
                 $holiday_check = Holiday::where('date', $s_date)
-                    // ->where('work_level', '=', '2')
-                    ->first();
+                ->first();
 
                 if(!empty($holiday_check)){//Calender mark holiday
                     $is_holiday = true;
                     $is_double = true;
-    
-                    if($holidayotstart==1){$ot_minutes = $ot_from->diffInMinutes($ot_to);}
-                    else{
-                        if($shift_start<$ot_from){$ot_minutes = $ot_from->diffInMinutes($ot_to);}
-                        else{$ot_minutes = $shift_start->diffInMinutes($ot_to);}
-                    }                
-    
-                    if($lunchholidaystatus==1){
-                        $ot_minutes = $ot_minutes - $lunchdeductmin;
-                    }
-    
-                    if($spedeductpresent>0){
-                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
-                    }
-    
-                    if($holiday_check->work_level==1){
-                        if($ot_minutes >= $otminimumminits){
-                            $ot_hours = 0;
-                            $double_ot_hours = 0;
-                            $one_point_five_ot_hours=0;
-                            $ot_hours = round($ot_minutes / 60, 2);
-                            $total_ot_hours += $ot_hours;
+                    $ot_hours = 0;
+                    $double_ot_hours = 0;
+                    $one_point_five_ot_hours=0;
+                    $triple_ot_hours=0;
+                    $holidayot = 0;
+                    $holidaydouble = 0;
+                    $ot_hours_morning = 0;
+                    $double_ot_hours_morning = 0;
+                    $one_point_five_ot_hours_morning=0;
+                    $triple_ot_hours_morning=0;
+                    $poya_work_days=0;
+                    $sunday_work_days=0;
+                    $mercantile_work_days=0;
+                    $sunday_double_ot_hours=0;
+                    $poya_extend_ot=0;
+                    
+                    $dayno = $date->format('w');
+
+                    $shiftondutytime = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$ondutyTime->format('h:i:s'));
+                    if($ot_from<$shiftondutytime){$ot_from=$shiftondutytime;}
+
+                    if($dayno == 0 | $dayno == 6){//Holiday OT lunch hour deduct only Saturday & Sunday
+                        if($lunchdeductstatus==1){
+                            $deducthours=round($lunchdeductmin / 60, 2);
+                            $ot_to->subHours($deducthours);
+                        }
+
+                        $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                        if($spedeductpresent>0){
+                            $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                        }
+
+                        if($lunchdeductstatus==1){
+                            $deducthours=round($lunchdeductmin / 60, 2);
+                            $ot_to->addHours($deducthours);
                         }
                     }
                     else{
+                        $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                    }
+
+                    
+
+                    if($holiday_check->work_level==1){
+                        if($holiday_check->holiday_type==1){
+                            if($ot_minutes >= $otminimumminits){
+                                $ot_hours = round($ot_minutes / 60, 2);
+                                $holidayot = $ot_hours;
+                                if($ot_hours>$shifthours){
+                                    $poya_extend_ot = $ot_hours- $shifthours;
+                                    $ot_hours = 0;
+                                    $holidayot =$shifthours;
+                                }
+                                else{
+                                    $holidayot =$ot_hours;
+                                    $ot_hours = 0;
+                                }
+    
+                                
+                                $total_ot_hours += $holidayot+$poya_extend_ot;
+                                // $poya_work_days += 1;
+                                $poya_work_days += round(min($holidayot / $shifthours, 1), 2);
+                            }
+                        }
+                        else{
+                            if($ot_minutes >= $otminimumminits){
+                                $double_ot_hours = floor($ot_minutes / 60);
+                                $holidaydouble = $double_ot_hours;
+                                if($double_ot_hours>$shifthours){
+                                    $triple_ot_hours = $double_ot_hours- $shifthours;
+                                    $double_ot_hours = 0;
+                                    $holidaydouble = $shifthours;
+                                }
+                                else{
+                                    $holidaydouble =$double_ot_hours;
+                                    $double_ot_hours = 0;
+                                }
+                                $total_ot_hours_double += $double_ot_hours;
+                                $total_ot_hours_triple += $triple_ot_hours;
+                                // $mercantile_work_days += 1;
+                                $mercantile_work_days += round(min($holidaydouble / $shifthours, 1), 2);
+                            }
+                        }                        
+                    }
+                    else{
                         if($ot_minutes >= $otminimumminits){
-                            $ot_hours = 0;
-                            $double_ot_hours = 0;
-                            $one_point_five_ot_hours=0;
                             $double_ot_hours = round($ot_minutes / 60, 2);
+                            $holidaydouble = $double_ot_hours;
+                            if($double_ot_hours>$shifthours){
+                                $triple_ot_hours = $double_ot_hours-$shifthours;
+                                $double_ot_hours = 0;
+                                $holidaydouble = $shifthours;
+                            }
+                            else{
+                                $holidaydouble =$double_ot_hours;
+                                $double_ot_hours = 0;
+                            }
                             $total_ot_hours_double += $double_ot_hours;
+                            $total_ot_hours_triple += $triple_ot_hours;
+                            // $mercantile_work_days += 1;
+                            $mercantile_work_days += round(min($holidaydouble / $shifthours, 1), 2);
                         }
                     }
                 }
@@ -1439,32 +640,57 @@ class Attendance extends Model
                         if($emp->is_sun_ot_type_as_act == 1){//As act
                             $is_sunday = true;
                             $is_double = true;
-    
+
+                            $ot_hours = 0;
+                            $double_ot_hours = 0;
+                            $one_point_five_ot_hours=0;
+                            $triple_ot_hours=0;
+                            $holidayot = 0;
+                            $holidaydouble = 0;
+                            $ot_hours_morning = 0;
+                            $double_ot_hours_morning = 0;
+                            $one_point_five_ot_hours_morning=0;
+                            $triple_ot_hours_morning=0;
+                            $poya_work_days=0;
+                            $sunday_work_days=0;
+                            $mercantile_work_days=0;
+                            $sunday_double_ot_hours=0;
+                            $poya_extend_ot=0;
+
                             $ot_from = $on_time;
                             $ot_to = $off_time;
-    
+
                             $ot_minutes = $ot_from->diffInMinutes($ot_to);
-
-                            if($lunchholidaystatus==1){
-                                $ot_minutes = $ot_minutes - $lunchdeductmin;
-                            }
-
                             if($spedeductpresent>0){
                                 $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
                             }
-    
+
                             if($ot_minutes >= $otminimumminits){
-                                $ot_hours = 0;
-                                $double_ot_hours = 0;
-                                $one_point_five_ot_hours=0;
                                 $double_ot_hours = round($ot_minutes / 60, 2);
                                 $total_ot_hours_double += $double_ot_hours;
+                                $sunday_work_days += 1;
                             }
                         }
                         else if($emp->is_sun_ot_type_as_act == 0){//As custom
                             if($emp->custom_sunday_ot_type == 1 ){//Type 1
                                 $ot_from = $on_time;
                                 $ot_to = $off_time;
+
+                                $ot_hours = 0;
+                                $double_ot_hours = 0;
+                                $one_point_five_ot_hours=0;
+                                $triple_ot_hours=0;
+                                $holidayot = 0;
+                                $holidaydouble = 0;
+                                $ot_hours_morning = 0;
+                                $double_ot_hours_morning = 0;
+                                $one_point_five_ot_hours_morning=0;
+                                $triple_ot_hours_morning=0;
+                                $poya_work_days=0;
+                                $sunday_work_days=0;
+                                $mercantile_work_days=0;
+                                $sunday_double_ot_hours=0;
+                                $poya_extend_ot=0;
         
                                 $seven_am = Carbon::parse($begining_checkin);
                                 $seven_am_time = $seven_am->format('H:i');
@@ -1489,7 +715,10 @@ class Attendance extends Model
                                 if($ot_to >=$today_twelve && $ot_to < $today_one ){
                                     $ot_to = $today_twelve;
                                 }
-        
+
+                                $shiftondutytime = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$ondutyTime->format('h:i:s'));
+                                if($ot_from<$shiftondutytime){$ot_from=$shiftondutytime;}
+                                
                                 if($lunchdeductstatus==1){
                                     $deducthours=round($lunchdeductmin / 60, 2);
                                     if($ot_to >= $today_one){
@@ -1501,29 +730,35 @@ class Attendance extends Model
                                 if($spedeductpresent>0){
                                     $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
                                 }
-        
+                                
                                 if($lunchdeductstatus==1){
                                     $deducthours=round($lunchdeductmin / 60, 2);
                                     if($ot_to >= $today_one){
                                         $ot_to->addHours($deducthours);
                                     }
                                 }
-        
+                                
                                 if($ot_minutes >= $otminimumminits){
-                                    $ot_hours = 0;
-                                    $double_ot_hours=0;
-                                    $one_point_five_ot_hours = 0;
-    
                                     if($sunafterdoublehours>0){
                                         $ot_hours = round($ot_minutes / 60, 2);
-                                        $double_ot_hours=round(($ot_hours-$sunafterdoublehours), 2);
-                                        $ot_hours = $sunafterdoublehours;
-                                        $total_ot_hours += ($ot_hours+$double_ot_hours);
+                                        if($ot_hours>$sunafterdoublehours){
+                                            $sunday_double_ot_hours=round(($ot_hours-$sunafterdoublehours), 2);
+                                            $ot_hours = 0;
+                                            $holidayot = $sunafterdoublehours;
+                                            $total_ot_hours += $holidayot+$sunday_double_ot_hours;
+                                        }
+                                        else{
+                                            $holidayot = $ot_hours;
+                                            $ot_hours = 0;
+                                            $total_ot_hours += $ot_hours;
+                                        }
                                     }
                                     else{
-                                        $ot_hours = round($ot_minutes / 60, 2);
-                                        $total_ot_hours += $ot_hours;
+                                        $holidayot = round($ot_minutes / 60, 2);
+                                        $total_ot_hours += $holidayot;
                                     }
+
+                                    $sunday_work_days += 1;
                                 }
                             }
                             else if($emp->custom_sunday_ot_type == 2 ){//Type 2
@@ -1586,11 +821,20 @@ class Attendance extends Model
                         }
                         else if($emp->is_sun_ot_type_as_act == 2){//As normal working day
                             $ot_hours = 0;
-                            $double_ot_hours=0;
-                            $one_point_five_ot_hours = 0;
+                            $double_ot_hours = 0;
+                            $one_point_five_ot_hours=0;
+                            $triple_ot_hours=0;
+                            $holidayot = 0;
+                            $holidaydouble = 0;
                             $ot_hours_morning = 0;
-                            $double_ot_hours_morning=0;
-                            $one_point_five_ot_hours_morning = 0;
+                            $double_ot_hours_morning = 0;
+                            $one_point_five_ot_hours_morning=0;
+                            $triple_ot_hours_morning=0;
+                            $poya_work_days=0;
+                            $sunday_work_days=0;
+                            $mercantile_work_days=0;
+                            $sunday_double_ot_hours=0;
+                            $poya_extend_ot=0;
 
                             if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
                                 $ot_from = $on_time;
@@ -1605,10 +849,10 @@ class Attendance extends Model
                                 $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
         
                                 if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                    $ot_from = $today_eight;
+                                    $ot_from =  $ot_from ;
                                 }
                                 else{
-                                    $ot_from =  $ot_from;
+                                    $ot_from = $today_eight;
                                 }
         
                                 $ot_minutes = $ot_from->diffInMinutes($ot_to);
@@ -1624,7 +868,7 @@ class Attendance extends Model
                                     }else{
                                         $ot_hours_morning += round($ot_minutes / 60, 2);
                                     }    
-                                }
+                                }                            
                             }
     
                             $total_ot_hours_double += $double_ot_hours_morning;
@@ -1656,13 +900,13 @@ class Attendance extends Model
                                         $one_point_five_ot_hours += round($ot_minutes / 60, 2);
                                     }else{
                                         $ot_hours += round($ot_minutes / 60, 2);
-                                    }        
+                                    }    
                                 }
-
+                                
                                 if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
                                     $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
                                     $ot_hours=$weekafterdouble;
-                                }   
+                                }  
                             }
 
                             $total_ot_hours_double += $double_ot_hours;
@@ -1674,17 +918,26 @@ class Attendance extends Model
                         if($emp->is_sat_ot_type_as_act == 1){//As act
                             $saturday_on_duty_time = $shift->saturday_onduty_time;
                             $saturday_off_duty_time = $shift->saturday_offduty_time;
-    
+
                             $shift_start = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$saturday_on_duty_time);
                             $shift_end = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$saturday_off_duty_time);
 
                             $ot_hours = 0;
-                            $double_ot_hours=0;
-                            $one_point_five_ot_hours = 0;
+                            $double_ot_hours = 0;
+                            $one_point_five_ot_hours=0;
+                            $triple_ot_hours=0;
+                            $holidayot = 0;
+                            $holidaydouble = 0;
                             $ot_hours_morning = 0;
-                            $double_ot_hours_morning=0;
-                            $one_point_five_ot_hours_morning = 0;
-    
+                            $double_ot_hours_morning = 0;
+                            $one_point_five_ot_hours_morning=0;
+                            $triple_ot_hours_morning=0;
+                            $poya_work_days=0;
+                            $sunday_work_days=0;
+                            $mercantile_work_days=0;
+                            $sunday_double_ot_hours=0;
+                            $poya_extend_ot=0;
+
                             if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
                                 $ot_from = $on_time;
                                 $ot_to = $shift_start;
@@ -1698,10 +951,10 @@ class Attendance extends Model
                                 $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
         
                                 if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                    $ot_from = $today_eight;
+                                    $ot_from =  $ot_from ;
                                 }
                                 else{
-                                    $ot_from =  $ot_from;
+                                    $ot_from = $today_seven;
                                 }
         
                                 $ot_minutes = $ot_from->diffInMinutes($ot_to);
@@ -1717,7 +970,7 @@ class Attendance extends Model
                                     }else{
                                         $ot_hours_morning += round($ot_minutes / 60, 2);
                                     }    
-                                }
+                                }                            
                             }
     
                             $total_ot_hours_double += $double_ot_hours_morning;
@@ -1726,34 +979,35 @@ class Attendance extends Model
 
                             if($off_time > $shift_end ){//Evening ot
                                 $ot_from = $shift_end;
-        
+
                                 $next_date = $date->copy()->addDays(1);
                                 $next_date = $next_date->format('Y-m-d');
                                 $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start->format('H:i:s'));
-        
+
                                 if($next_date_morning_shift_start < $off_time ){
                                     $ot_to = $next_date_morning_shift_start;
                                 }else{
                                     $ot_to = $off_time;
                                 }
-        
+
                                 $ot_from = Carbon::parse($ot_from);
                                 $ot_to = Carbon::parse($ot_to);
-    
+                                $ot_from = Carbon::parse($ot_from)->setDate($record_date->year,$record_date->month,$record_date->day);
+
                                 $ot_minutes = $ot_from->diffInMinutes($ot_to);
                                 if($spedeductpresent>0){
                                     $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
                                 }
-        
-                                if($ot_minutes >= $otminimumminits){        
+                            
+                                if($ot_minutes >= $otminimumminits){
                                     if($is_double){
                                         $double_ot_hours += round($ot_minutes / 60, 2);
                                     }elseif ($is_one_point_five){
                                         $one_point_five_ot_hours += round($ot_minutes / 60, 2);
                                     }else{
                                         $ot_hours += round($ot_minutes / 60, 2);
-                                    }        
-                                }        
+                                    }    
+                                }                          
                             }
 
                             $total_ot_hours_double += $double_ot_hours;
@@ -1764,6 +1018,22 @@ class Attendance extends Model
                             if($emp->custom_saturday_ot_type == 1 ){//Type 1
                                 $ot_from = $on_time;
                                 $ot_to = $off_time;
+
+                                $ot_hours = 0;
+                                $double_ot_hours = 0;
+                                $one_point_five_ot_hours=0;
+                                $triple_ot_hours=0;
+                                $holidayot = 0;
+                                $holidaydouble = 0;
+                                $ot_hours_morning = 0;
+                                $double_ot_hours_morning = 0;
+                                $one_point_five_ot_hours_morning=0;
+                                $triple_ot_hours_morning=0;
+                                $poya_work_days=0;
+                                $sunday_work_days=0;
+                                $mercantile_work_days=0;
+                                $sunday_double_ot_hours=0;
+                                $poya_extend_ot=0;
         
                                 $seven_am = Carbon::parse($begining_checkin);
                                 $seven_am_time = $seven_am->format('H:i');
@@ -1788,14 +1058,15 @@ class Attendance extends Model
                                 if($ot_to >=$today_twelve && $ot_to < $today_one ){
                                     $ot_to = $today_twelve;
                                 }
-        
+
+                                $shiftondutytime = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$ondutyTime->format('h:i:s'));
+                                if($ot_from<$shiftondutytime){$ot_from=$shiftondutytime;}
+                                
                                 if($lunchdeductstatus==1){
                                     $deducthours=round($lunchdeductmin / 60, 2);
-                                    if($ot_to >= $today_one){
-                                        $ot_to->subHours($deducthours);
-                                    }
+                                    $ot_to->subHours($deducthours);
                                 }
-        
+                                       
                                 $ot_minutes = $ot_from->diffInMinutes($ot_to);
                                 if($spedeductpresent>0){
                                     $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
@@ -1803,15 +1074,10 @@ class Attendance extends Model
         
                                 if($lunchdeductstatus==1){
                                     $deducthours=round($lunchdeductmin / 60, 2);
-                                    if($ot_to >= $today_one){
-                                        $ot_to->addHours($deducthours);
-                                    }
+                                    $ot_to->addHours($deducthours);
                                 }
         
                                 if($ot_minutes >= $otminimumminits){
-                                    $ot_hours = 0;
-                                    $double_ot_hours=0;
-                                    $one_point_five_ot_hours = 0;
                                     $ot_hours = round($ot_minutes / 60, 2);
                                     $total_ot_hours += $ot_hours;
                                 }
@@ -1876,11 +1142,20 @@ class Attendance extends Model
                         }
                         if($emp->is_sat_ot_type_as_act == 2){//As normal working day
                             $ot_hours = 0;
-                            $double_ot_hours=0;
-                            $one_point_five_ot_hours = 0;
+                            $double_ot_hours = 0;
+                            $one_point_five_ot_hours=0;
+                            $triple_ot_hours=0;
+                            $holidayot = 0;
+                            $holidaydouble = 0;
                             $ot_hours_morning = 0;
-                            $double_ot_hours_morning=0;
-                            $one_point_five_ot_hours_morning = 0;
+                            $double_ot_hours_morning = 0;
+                            $one_point_five_ot_hours_morning=0;
+                            $triple_ot_hours_morning=0;
+                            $poya_work_days=0;
+                            $sunday_work_days=0;
+                            $mercantile_work_days=0;
+                            $sunday_double_ot_hours=0;
+                            $poya_extend_ot=0;
 
                             if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
                                 $ot_from = $on_time;
@@ -1895,10 +1170,10 @@ class Attendance extends Model
                                 $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
         
                                 if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                    $ot_from = $today_eight;
+                                    $ot_from =  $ot_from ;
                                 }
                                 else{
-                                    $ot_from =  $ot_from;
+                                    $ot_from = $today_seven;
                                 }
         
                                 $ot_minutes = $ot_from->diffInMinutes($ot_to);
@@ -1914,7 +1189,7 @@ class Attendance extends Model
                                     }else{
                                         $ot_hours_morning += round($ot_minutes / 60, 2);
                                     }    
-                                }
+                                }                            
                             }
     
                             $total_ot_hours_double += $double_ot_hours_morning;
@@ -1939,20 +1214,24 @@ class Attendance extends Model
                                     $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
                                 }
         
-                                if($ot_minutes >= $otminimumminits){        
+                                if($ot_minutes >= $otminimumminits){
+                                    $ot_hours = 0;
+                                    $double_ot_hours=0;
+                                    $one_point_five_ot_hours = 0;
+        
                                     if($is_double){
                                         $double_ot_hours += round($ot_minutes / 60, 2);
                                     }elseif ($is_one_point_five){
                                         $one_point_five_ot_hours += round($ot_minutes / 60, 2);
                                     }else{
                                         $ot_hours += round($ot_minutes / 60, 2);
-                                    }        
-                                } 
+                                    }    
+                                }   
                                 
                                 if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
                                     $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
                                     $ot_hours=$weekafterdouble;
-                                }   
+                                }  
                             }
 
                             $total_ot_hours_double += $double_ot_hours;
@@ -2081,11 +1360,20 @@ class Attendance extends Model
                         }
                         else{ //Normal ot
                             $ot_hours = 0;
-                            $double_ot_hours=0;
-                            $one_point_five_ot_hours = 0;
+                            $double_ot_hours = 0;
+                            $one_point_five_ot_hours=0;
+                            $triple_ot_hours=0;
+                            $holidayot = 0;
+                            $holidaydouble = 0;
                             $ot_hours_morning = 0;
-                            $double_ot_hours_morning=0;
-                            $one_point_five_ot_hours_morning = 0;
+                            $double_ot_hours_morning = 0;
+                            $one_point_five_ot_hours_morning=0;
+                            $triple_ot_hours_morning=0;
+                            $poya_work_days=0;
+                            $sunday_work_days=0;
+                            $mercantile_work_days=0;
+                            $sunday_double_ot_hours=0;
+                            $poya_extend_ot=0;
 
                             if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
                                 $ot_from = $on_time;
@@ -2094,23 +1382,23 @@ class Attendance extends Model
                                 $seven_am = Carbon::parse($begining_checkin);
                                 $seven_am_time = $seven_am->format('H:i');
                                 $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
-        
+                                
                                 $eight_am = Carbon::parse($onduty_time);
                                 $eight_am_time = $eight_am->format('H:i');
                                 $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
-        
+                                
                                 if ($ot_from > $today_seven && $ot_from < $today_eight ){
-                                    $ot_from = $today_eight;
+                                    $ot_from =  $ot_from ;
                                 }
                                 else{
-                                    $ot_from =  $ot_from;
+                                    $ot_from = $today_seven;
                                 }
         
                                 $ot_minutes = $ot_from->diffInMinutes($ot_to);
                                 if($spedeductpresent>0){
                                     $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
                                 }
-        
+
                                 if($ot_minutes >= $otminimumminits){                                
                                     if($is_double){
                                         $double_ot_hours_morning += round($ot_minutes / 60, 2);
@@ -2119,7 +1407,7 @@ class Attendance extends Model
                                     }else{
                                         $ot_hours_morning += round($ot_minutes / 60, 2);
                                     }    
-                                }
+                                }                            
                             }
     
                             $total_ot_hours_double += $double_ot_hours_morning;
@@ -2128,7 +1416,7 @@ class Attendance extends Model
 
                             if($off_time > $shift_end && $totalworkinghours>=$afterothours){ //Evening ot
                                 $ot_from = $shift_end;
-        
+                                
                                 $next_date = $date->copy()->addDays(1);
                                 $next_date = $next_date->format('Y-m-d');
                                 $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start->format('h:i A'));
@@ -2144,20 +1432,20 @@ class Attendance extends Model
                                     $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
                                 }
         
-                                if($ot_minutes >= $otminimumminits){        
+                                if($ot_minutes >= $otminimumminits){    
                                     if($is_double){
                                         $double_ot_hours += round($ot_minutes / 60, 2);
                                     }elseif ($is_one_point_five){
                                         $one_point_five_ot_hours += round($ot_minutes / 60, 2);
                                     }else{
                                         $ot_hours += round($ot_minutes / 60, 2);
-                                    }        
-                                } 
-                                
+                                    }
+                                }
+
                                 if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
                                     $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
                                     $ot_hours=$weekafterdouble;
-                                }   
+                                }  
                             }
 
                             $total_ot_hours_double += $double_ot_hours;
@@ -2178,7 +1466,7 @@ class Attendance extends Model
                 ->where('emp_id', $emp_id)
                 ->whereDate('date', $record_date)
                 ->first();
-    
+
                 if ($coveringdetail) {
                     $coveringend = Carbon::parse($coveringdetail->end_time);
                     $coveringend = $record_date->copy()->setTime($coveringend->hour, $coveringend->minute, $coveringend->second);
@@ -2186,27 +1474,33 @@ class Attendance extends Model
                 }
 
                 if($ot_hours > 0 && $coveringhours > 0){
+                    if($shifthours<$coveringhours){
+                        $coveringhours=$shifthours;
+                    }
+
                     $newtotalot = $ot_hours - $coveringhours;
                     $fromtime = $coveringend;
-                    $othours = $newtotalot;   
+                    $othours = $newtotalot;
+                
                 }else{
+
                     $fromtime = Carbon::parse($ot_from);
                     $othours = $ot_hours;
-                }                
+                }
 
                 //Morning OT
-                if($ot_hours_morning>0 | $double_ot_hours_morning>0 | $triple_ot_hours_morning>0 | $holidayot>0 | $holidaydouble>0){
+                if($ot_hours_morning>0 | $double_ot_hours_morning>0 | $triple_ot_hours_morning>0){
                     $ob = array(
                         'emp_id' => $emp_id,
                         'etf_no' => $emp->emp_etfno,
                         'name' => $emp->emp_name_with_initial,
                         'date' => $record_date->format('Y-m-d'),
                         'day_name' => $date->format('l'),
-                        'from' => $on_time->format('Y-m-d h:i A'),
-                        'from_24' => $on_time->format('Y-m-d H:i'),
+                        'from' => $on_time->format('Y-m-d h:i:s A'),
+                        'from_24' => $on_time->format('Y-m-d H:i:s'),
                         'from_rfc' => $on_time->format('Y-m-d\TH:i:s'),
-                        'to' => $shift_start->format('Y-m-d h:i A'),
-                        'to_24' => $shift_start->format('Y-m-d H:i'),
+                        'to' => $shift_start->format('Y-m-d h:i:s A'),
+                        'to_24' => $shift_start->format('Y-m-d H:i:s'),
                         'to_rfc' => $shift_start->format('Y-m-d\TH:i:s'),
                         'hours' => $ot_hours_morning,
                         'double_hours' => $double_ot_hours_morning,
@@ -2214,6 +1508,11 @@ class Attendance extends Model
                         'triple_hours' => $triple_ot_hours_morning,
                         'holiday_ot_hours' => $holidayot,
                         'holiday_double_hours' => $holidaydouble,
+                        'poya_work_days' => $poya_work_days,
+                        'sunday_work_days' => $sunday_work_days,
+                        'mercantile_work_days' => $mercantile_work_days,
+                        'sunday_double_ot_hours' => $sunday_double_ot_hours,
+                        'poya_extend_ot' => $poya_extend_ot,
                         'is_holiday' => $is_holiday,
                     );
                     array_push($ot_breakdown, $ob);
@@ -2226,11 +1525,11 @@ class Attendance extends Model
                         'name' => $emp->emp_name_with_initial,
                         'date' => $record_date->format('Y-m-d'),
                         'day_name' => $date->format('l'),
-                        'from' => $fromtime->format('Y-m-d h:i A'),
-                        'from_24' => $fromtime->format('Y-m-d H:i'),
+                        'from' => $fromtime->format('Y-m-d h:i:s A'),
+                        'from_24' => $fromtime->format('Y-m-d H:i:s'),
                         'from_rfc' => $fromtime->format('Y-m-d\TH:i:s'),
-                        'to' => $ot_to->format('Y-m-d h:i A'),
-                        'to_24' => $ot_to->format('Y-m-d H:i'),
+                        'to' => $ot_to->format('Y-m-d h:i:s A'),
+                        'to_24' => $ot_to->format('Y-m-d H:i:s'),
                         'to_rfc' => $ot_to->format('Y-m-d\TH:i:s'),
                         'hours' => $othours,
                         'double_hours' => $double_ot_hours,
@@ -2238,9 +1537,1063 @@ class Attendance extends Model
                         'triple_hours' => $triple_ot_hours,
                         'holiday_ot_hours' => $holidayot,
                         'holiday_double_hours' => $holidaydouble,
+                        'poya_work_days' => $poya_work_days,
+                        'sunday_work_days' => $sunday_work_days,
+                        'mercantile_work_days' => $mercantile_work_days,
+                        'sunday_double_ot_hours' => $sunday_double_ot_hours,
+                        'poya_extend_ot' => $poya_extend_ot,
                         'is_holiday' => $is_holiday,
                     );
                     array_push($ot_breakdown, $ob);
+                }    
+            }
+            else{
+                // this condition not continued developing since multioffset has no longer shifts than 1 day.
+                for($i = 0; $i < $date_period; $i++){
+                    $date = $record_date->copy()->addDays($i);
+                    $day = $date->dayOfWeek;
+
+                    $is_sunday = false;
+                    $is_holiday = false;
+                    $is_double = false;
+                    $is_one_point_five = false;
+
+                    $date = $record_date;
+                    $day = $date->dayOfWeek;            
+
+                    // if($otcaltype==0){
+                    //     $ot_from =  Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$otcaltime);
+                    // }
+
+                    $shift_start =  Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_start_);
+                    $shift_end = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_end_);
+                    if ($shift->id==2) {
+                        $shift_end->addDay();
+                    }
+                    $s_date = $date->format('Y-m-d');
+
+                    $holiday_check = Holiday::where('date', $s_date)
+                    ->first();
+
+                    if(!empty($holiday_check)){//Calender mark holiday
+                        $is_holiday = true;
+                        $is_double = true;
+                        $ot_hours = 0;
+                        $double_ot_hours = 0;
+                        $one_point_five_ot_hours=0;
+                        $triple_ot_hours=0;
+                        $holidayot = 0;
+                        $holidaydouble = 0;
+                        $ot_hours_morning = 0;
+                        $double_ot_hours_morning = 0;
+                        $one_point_five_ot_hours_morning=0;
+                        $triple_ot_hours_morning=0;
+                        $poya_work_days=0;
+                        $sunday_work_days=0;
+                        $mercantile_work_days=0;
+                        $sunday_double_ot_hours=0;
+                        $poya_extend_ot=0;
+                        
+                        $dayno = $date->format('w');
+
+                        $shiftondutytime = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$ondutyTime->format('h:i:s'));
+                        if($ot_from<$shiftondutytime){$ot_from=$shiftondutytime;}
+
+                        if($dayno == 0 | $dayno == 6){//Holiday OT lunch hour deduct only Saturday & Sunday
+                            if($lunchdeductstatus==1){
+                                $deducthours=round($lunchdeductmin / 60, 2);
+                                $ot_to->subHours($deducthours);
+                            }
+
+                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                            if($spedeductpresent>0){
+                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                            }
+
+                            if($lunchdeductstatus==1){
+                                $deducthours=round($lunchdeductmin / 60, 2);
+                                $ot_to->addHours($deducthours);
+                            }
+                        }
+                        else{
+                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                        }
+
+                        if($holiday_check->work_level==1){
+                            if($holiday_check->holiday_type==1){
+                                if($ot_minutes >= $otminimumminits){
+                                    $ot_hours = round($ot_minutes / 60, 2);
+                                    $holidayot = $ot_hours;
+                                    if($ot_hours>$shifthours){
+                                        $poya_extend_ot = $ot_hours-$shifthours;
+                                        $ot_hours = 0;
+                                        $holidayot = $shifthours;
+                                    }
+                                    else{
+                                        $holidayot =$ot_hours;
+                                        $ot_hours = 0;
+                                    }
+        
+                                    $total_ot_hours += $holidayot+$poya_extend_ot;
+                                    // $poya_work_days += 1;
+                                    $poya_work_days += round(min($holidayot / $shifthours, 1), 2);
+                                }
+                            }
+                            else{
+                                if($ot_minutes >= $otminimumminits){
+                                    $double_ot_hours = floor($ot_minutes / 60);
+                                    $holidaydouble = $double_ot_hours;
+                                    if($double_ot_hours>$shifthours){
+                                        $triple_ot_hours = $double_ot_hours-$shifthours;
+                                        $double_ot_hours = 0;
+                                        $holidaydouble = $shifthours;
+                                    }
+                                    else{
+                                        $holidaydouble =$double_ot_hours;
+                                        $double_ot_hours = 0;
+                                    }
+                                    $total_ot_hours_double += $double_ot_hours;
+                                    $total_ot_hours_triple += $triple_ot_hours;
+                                    // $mercantile_work_days += 1;
+                                    $mercantile_work_days += round(min($holidaydouble / $shifthours, 1), 2);
+                                }
+                            }                        
+                        }
+                        else{
+                            if($ot_minutes >= $otminimumminits){
+                                $double_ot_hours = round($ot_minutes / 60, 2);
+                                $holidaydouble = $double_ot_hours;
+                                if($double_ot_hours>$shifthours){
+                                    $triple_ot_hours = $double_ot_hours-$shifthours;
+                                    $double_ot_hours = 0;
+                                    $holidaydouble = $shifthours;
+                                }
+                                else{
+                                    $holidaydouble =$double_ot_hours;
+                                    $double_ot_hours = 0;
+                                }
+                                $total_ot_hours_double += $double_ot_hours;
+                                $total_ot_hours_triple += $triple_ot_hours;
+                                // $mercantile_work_days += 1;
+                                $mercantile_work_days += round(min($holidaydouble / $shifthours, 1), 2);
+                            }
+                        }
+                    }
+                    else{//Normal week day
+                        if($day==0){//Sunday
+                            if($emp->is_sun_ot_type_as_act == 1){//As act
+                                $is_sunday = true;
+                                $is_double = true;
+
+                                $ot_hours = 0;
+                                $double_ot_hours = 0;
+                                $one_point_five_ot_hours=0;
+                                $triple_ot_hours=0;
+                                $holidayot = 0;
+                                $holidaydouble = 0;
+                                $ot_hours_morning = 0;
+                                $double_ot_hours_morning = 0;
+                                $one_point_five_ot_hours_morning=0;
+                                $triple_ot_hours_morning=0;
+                                $poya_work_days=0;
+                                $sunday_work_days=0;
+                                $mercantile_work_days=0;
+                                $sunday_double_ot_hours=0;
+                                $poya_extend_ot=0;
+
+                                $ot_from = $on_time;
+                                $ot_to = $off_time;
+
+                                $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                if($spedeductpresent>0){
+                                    $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                }
+
+                                if($ot_minutes >= $otminimumminits){
+                                    $double_ot_hours = round($ot_minutes / 60, 2);
+                                    $total_ot_hours_double += $double_ot_hours;
+                                    $sunday_work_days += 1;
+                                }
+                            }
+                            else if($emp->is_sun_ot_type_as_act == 0){//As custom
+                                if($emp->custom_sunday_ot_type == 1 ){//Type 1
+                                    $ot_from = $on_time;
+                                    $ot_to = $off_time;
+
+                                    $ot_hours = 0;
+                                    $double_ot_hours = 0;
+                                    $one_point_five_ot_hours=0;
+                                    $triple_ot_hours=0;
+                                    $holidayot = 0;
+                                    $holidaydouble = 0;
+                                    $ot_hours_morning = 0;
+                                    $double_ot_hours_morning = 0;
+                                    $one_point_five_ot_hours_morning=0;
+                                    $triple_ot_hours_morning=0;
+                                    $poya_work_days=0;
+                                    $sunday_work_days=0;
+                                    $mercantile_work_days=0;
+                                    $sunday_double_ot_hours=0;
+                                    $poya_extend_ot=0;
+            
+                                    $seven_am = Carbon::parse($begining_checkin);
+                                    $seven_am_time = $seven_am->format('H:i');
+                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+            
+                                    $eight_am = Carbon::parse($onduty_time);
+                                    $eight_am_time = $eight_am->format('H:i');
+                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+            
+                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                        $ot_from =  $today_eight;
+                                    }
+            
+                                    $twelve_pm = Carbon::parse($earlystart);
+                                    $twelve_pm_time = $twelve_pm->format('H:i');
+                                    $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
+            
+                                    $one_pm = Carbon::parse($earlyend);
+                                    $one_pm_time = $one_pm->format('H:i');
+                                    $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
+            
+                                    if($ot_to >=$today_twelve && $ot_to < $today_one ){
+                                        $ot_to = $today_twelve;
+                                    }
+
+                                    $shiftondutytime = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$ondutyTime->format('h:i:s'));
+                                    if($ot_from<$shiftondutytime){$ot_from=$shiftondutytime;}
+            
+                                    if($lunchdeductstatus==1){
+                                        $deducthours=round($lunchdeductmin / 60, 2);
+                                        if($ot_to >= $today_one){
+                                            $ot_to->subHours($deducthours);
+                                        }
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+                                    
+                                    if($lunchdeductstatus==1){
+                                        $deducthours=round($lunchdeductmin / 60, 2);
+                                        if($ot_to >= $today_one){
+                                            $ot_to->addHours($deducthours);
+                                        }
+                                    }
+                                    
+                                    if($ot_minutes >= $otminimumminits){
+                                        if($sunafterdoublehours>0){
+                                            $ot_hours = round($ot_minutes / 60, 2);
+                                            if($ot_hours>$sunafterdoublehours){
+                                                $sunday_double_ot_hours=round(($ot_hours-$sunafterdoublehours), 2);
+                                                $ot_hours = 0;
+                                                $holidayot = $sunafterdoublehours;
+                                                $total_ot_hours += ($holidayot+$sunday_double_ot_hours);
+                                            }
+                                            else{
+                                                $holidayot = $ot_hours;
+                                                $ot_hours = 0;
+                                                $total_ot_hours += $ot_hours;
+                                            }
+                                        }
+                                        else{
+                                            $holidayot = round($ot_minutes / 60, 2);
+                                            $total_ot_hours += $holidayot;
+                                        }
+    
+                                        $sunday_work_days += 1;
+                                    }
+                                }
+                                else if($emp->custom_sunday_ot_type == 2 ){//Type 2
+                                    $is_double = true;
+                                    $ot_from = $on_time;
+                                    $ot_to = $off_time;
+            
+                                    $seven_am = Carbon::parse($begining_checkin);
+                                    $seven_am_time = $seven_am->format('H:i');
+                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+            
+                                    $eight_am = Carbon::parse($onduty_time);
+                                    $eight_am_time = $eight_am->format('H:i');
+                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+            
+                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                        $ot_from =  $today_eight;
+                                    }
+            
+                                    $twelve_pm = Carbon::parse($earlystart);
+                                    $twelve_pm_time = $twelve_pm->format('H:i');
+                                    $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
+            
+                                    $one_pm = Carbon::parse($earlyend);
+                                    $one_pm_time = $one_pm->format('H:i');
+                                    $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
+            
+                                    if($ot_to >=$today_twelve && $ot_to < $today_one ){
+                                        $ot_to = $today_twelve;
+                                    }
+            
+                                    if($lunchdeductstatus==1){
+                                        $deducthours=round($lunchdeductmin / 60, 2);
+                                        if($ot_to >= $today_one){
+                                            $ot_to->subHours($deducthours);
+                                        }
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($lunchdeductstatus==1){
+                                        $deducthours=round($lunchdeductmin / 60, 2);
+                                        if($ot_to >= $today_one){
+                                            $ot_to->addHours($deducthours);
+                                        }
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){
+                                        $ot_hours = 0;
+                                        $double_ot_hours=0;
+                                        $one_point_five_ot_hours = 0;
+                                        $double_ot_hours = round($ot_minutes / 60, 2);
+                                        $total_ot_hours_double += $double_ot_hours;
+                                    }
+            
+                                }
+                            }
+                            else if($emp->is_sun_ot_type_as_act == 2){//As normal working day
+                                $ot_hours = 0;
+                                $double_ot_hours = 0;
+                                $one_point_five_ot_hours=0;
+                                $triple_ot_hours=0;
+                                $holidayot = 0;
+                                $holidaydouble = 0;
+                                $ot_hours_morning = 0;
+                                $double_ot_hours_morning = 0;
+                                $one_point_five_ot_hours_morning=0;
+                                $triple_ot_hours_morning=0;
+                                $poya_work_days=0;
+                                $sunday_work_days=0;
+                                $mercantile_work_days=0;
+                                $sunday_double_ot_hours=0;
+                                $poya_extend_ot=0;
+
+                                if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
+                                    $ot_from = $on_time;
+                                    $ot_to = $shift_start;
+            
+                                    $seven_am = Carbon::parse($begining_checkin);
+                                    $seven_am_time = $seven_am->format('H:i');
+                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+            
+                                    $eight_am = Carbon::parse($onduty_time);
+                                    $eight_am_time = $eight_am->format('H:i');
+                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+            
+                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                        $ot_from =  $ot_from ;
+                                    }
+                                    else{
+                                        $ot_from = $today_eight;
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){                                
+                                        if($is_double){
+                                            $double_ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }elseif ($is_one_point_five){
+                                            $one_point_five_ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }else{
+                                            $ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }    
+                                    }                            
+                                }
+        
+                                $total_ot_hours_double += $double_ot_hours_morning;
+                                $total_ot_hours_one_point_five += $one_point_five_ot_hours_morning;
+                                $total_ot_hours += $ot_hours_morning;
+
+                                if($off_time > $shift_end  && $totalworkinghours>=$afterothours){ //Evening ot
+                                    $ot_from = $shift_end;
+            
+                                    $next_date = $date->copy()->addDays(1);
+                                    $next_date = $next_date->format('Y-m-d');
+                                    $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start_);
+            
+                                    if($next_date_morning_shift_start < $off_time ){
+                                        $ot_to = $next_date_morning_shift_start;
+                                    }else{
+                                        $ot_to = $off_time;
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){
+                                        if($is_double){
+                                            $double_ot_hours += round($ot_minutes / 60, 2);
+                                        }elseif ($is_one_point_five){
+                                            $one_point_five_ot_hours += round($ot_minutes / 60, 2);
+                                        }else{
+                                            $ot_hours += round($ot_minutes / 60, 2);
+                                        }    
+                                    }
+                                    
+                                    if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
+                                        $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
+                                        $ot_hours=$weekafterdouble;
+                                    }  
+                                }
+
+                                $total_ot_hours_double += $double_ot_hours;
+                                $total_ot_hours_one_point_five += $one_point_five_ot_hours;
+                                $total_ot_hours += $ot_hours;
+                            }
+                        }
+                        else if($day==6){//Saturday
+                            if($emp->is_sat_ot_type_as_act == 1){//As act
+                                $saturday_on_duty_time = $shift->saturday_onduty_time;
+                                $saturday_off_duty_time = $shift->saturday_offduty_time;
+
+                                $shift_start = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$saturday_on_duty_time);
+                                $shift_end = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$saturday_off_duty_time);
+
+                                $ot_hours = 0;
+                                $double_ot_hours = 0;
+                                $one_point_five_ot_hours=0;
+                                $triple_ot_hours=0;
+                                $holidayot = 0;
+                                $holidaydouble = 0;
+                                $ot_hours_morning = 0;
+                                $double_ot_hours_morning = 0;
+                                $one_point_five_ot_hours_morning=0;
+                                $triple_ot_hours_morning=0;
+                                $poya_work_days=0;
+                                $sunday_work_days=0;
+                                $mercantile_work_days=0;
+                                $sunday_double_ot_hours=0;
+                                $poya_extend_ot=0;
+
+                                if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
+                                    $ot_from = $on_time;
+                                    $ot_to = $shift_start;
+            
+                                    $seven_am = Carbon::parse($begining_checkin);
+                                    $seven_am_time = $seven_am->format('H:i');
+                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+            
+                                    $eight_am = Carbon::parse($onduty_time);
+                                    $eight_am_time = $eight_am->format('H:i');
+                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+            
+                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                        $ot_from =  $ot_from ;
+                                    }
+                                    else{
+                                        $ot_from = $today_seven;
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){                                
+                                        if($is_double){
+                                            $double_ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }elseif ($is_one_point_five){
+                                            $one_point_five_ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }else{
+                                            $ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }    
+                                    }                            
+                                }
+        
+                                $total_ot_hours_double += $double_ot_hours_morning;
+                                $total_ot_hours_one_point_five += $one_point_five_ot_hours_morning;
+                                $total_ot_hours += $ot_hours_morning;
+
+                                if($off_time > $shift_end ){//Evening ot
+                                    $ot_from = $shift_end;
+
+                                    $next_date = $date->copy()->addDays(1);
+                                    $next_date = $next_date->format('Y-m-d');
+                                    $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start->format('H:i:s'));
+
+                                    if($next_date_morning_shift_start < $off_time ){
+                                        $ot_to = $next_date_morning_shift_start;
+                                    }else{
+                                        $ot_to = $off_time;
+                                    }
+
+                                    $ot_from = Carbon::parse($ot_from);
+                                    $ot_to = Carbon::parse($ot_to);
+                                    $ot_from = Carbon::parse($ot_from)->setDate($record_date->year,$record_date->month,$record_date->day);
+
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+                                
+                                    if($ot_minutes >= $otminimumminits){
+                                        if($is_double){
+                                            $double_ot_hours += round($ot_minutes / 60, 2);
+                                        }elseif ($is_one_point_five){
+                                            $one_point_five_ot_hours += round($ot_minutes / 60, 2);
+                                        }else{
+                                            $ot_hours += round($ot_minutes / 60, 2);
+                                        }    
+                                    }                          
+                                }
+
+                                $total_ot_hours_double += $double_ot_hours;
+                                $total_ot_hours_one_point_five += $one_point_five_ot_hours;
+                                $total_ot_hours += $ot_hours;
+                            }
+                            else if($emp->is_sat_ot_type_as_act == 0){//As custom
+                                if($emp->custom_saturday_ot_type == 1 ){//Type 1
+                                    $ot_from = $on_time;
+                                    $ot_to = $off_time;
+
+                                    $ot_hours = 0;
+                                    $double_ot_hours = 0;
+                                    $one_point_five_ot_hours=0;
+                                    $triple_ot_hours=0;
+                                    $holidayot = 0;
+                                    $holidaydouble = 0;
+                                    $ot_hours_morning = 0;
+                                    $double_ot_hours_morning = 0;
+                                    $one_point_five_ot_hours_morning=0;
+                                    $triple_ot_hours_morning=0;
+                                    $poya_work_days=0;
+                                    $sunday_work_days=0;
+                                    $mercantile_work_days=0;
+                                    $sunday_double_ot_hours=0;
+                                    $poya_extend_ot=0;
+            
+                                    $seven_am = Carbon::parse($begining_checkin);
+                                    $seven_am_time = $seven_am->format('H:i');
+                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+            
+                                    $eight_am = Carbon::parse($onduty_time);
+                                    $eight_am_time = $eight_am->format('H:i');
+                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+            
+                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                        $ot_from =  $today_eight;
+                                    }
+            
+                                    $twelve_pm = Carbon::parse($earlystart);
+                                    $twelve_pm_time = $twelve_pm->format('H:i');
+                                    $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
+            
+                                    $one_pm = Carbon::parse($earlyend);
+                                    $one_pm_time = $one_pm->format('H:i');
+                                    $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
+            
+                                    if($ot_to >=$today_twelve && $ot_to < $today_one ){
+                                        $ot_to = $today_twelve;
+                                    }
+
+                                    $shiftondutytime = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$ondutyTime->format('h:i:s'));
+                                    if($ot_from<$shiftondutytime){$ot_from=$shiftondutytime;}
+                                    
+                                    if($lunchdeductstatus==1){
+                                        $deducthours=round($lunchdeductmin / 60, 2);
+                                        if($ot_to >= $today_one){
+                                            $ot_to->subHours($deducthours);
+                                        }
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($lunchdeductstatus==1){
+                                        $deducthours=round($lunchdeductmin / 60, 2);
+                                        if($ot_to >= $today_one){
+                                            $ot_to->addHours($deducthours);
+                                        }
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){
+                                        $holidayot = round($ot_minutes / 60, 2);
+                                        $total_ot_hours += $holidayot;
+                                    }
+                                }
+                                else if($emp->custom_saturday_ot_type == 2 ){//Type 2
+                                    $is_double = true;
+                                    $ot_from = $on_time;
+                                    $ot_to = $off_time;
+            
+                                    $seven_am = Carbon::parse($begining_checkin);
+                                    $seven_am_time = $seven_am->format('H:i');
+                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+            
+                                    $eight_am = Carbon::parse($onduty_time);
+                                    $eight_am_time = $eight_am->format('H:i');
+                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+            
+                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                        $ot_from =  $today_eight;
+                                    }
+            
+                                    $twelve_pm = Carbon::parse($earlystart);
+                                    $twelve_pm_time = $twelve_pm->format('H:i');
+                                    $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
+            
+                                    $one_pm = Carbon::parse($earlyend);
+                                    $one_pm_time = $one_pm->format('H:i');
+                                    $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
+            
+                                    if($ot_to >=$today_twelve && $ot_to < $today_one ){
+                                        $ot_to = $today_twelve;
+                                    }
+            
+                                    if($lunchdeductstatus==1){
+                                        $deducthours=round($lunchdeductmin / 60, 2);
+                                        if($ot_to >= $today_one){
+                                            $ot_to->subHours($deducthours);
+                                        }
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($lunchdeductstatus==1){
+                                        $deducthours=round($lunchdeductmin / 60, 2);
+                                        if($ot_to >= $today_one){
+                                            $ot_to->addHours($deducthours);
+                                        }
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){
+                                        $ot_hours = 0;
+                                        $double_ot_hours=0;
+                                        $one_point_five_ot_hours = 0;
+                                        $double_ot_hours = round($ot_minutes / 60, 2);
+                                        $total_ot_hours_double += $double_ot_hours;
+                                    }
+            
+                                }
+                            }
+                            if($emp->is_sat_ot_type_as_act == 2){//As normal working day
+                                $ot_hours = 0;
+                                $double_ot_hours = 0;
+                                $one_point_five_ot_hours=0;
+                                $triple_ot_hours=0;
+                                $holidayot = 0;
+                                $holidaydouble = 0;
+                                $ot_hours_morning = 0;
+                                $double_ot_hours_morning = 0;
+                                $one_point_five_ot_hours_morning=0;
+                                $triple_ot_hours_morning=0;
+                                $poya_work_days=0;
+                                $sunday_work_days=0;
+                                $mercantile_work_days=0;
+                                $sunday_double_ot_hours=0;
+                                $poya_extend_ot=0;
+
+                                if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
+                                    $ot_from = $on_time;
+                                    $ot_to = $shift_start;
+            
+                                    $seven_am = Carbon::parse($begining_checkin);
+                                    $seven_am_time = $seven_am->format('H:i');
+                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+            
+                                    $eight_am = Carbon::parse($onduty_time);
+                                    $eight_am_time = $eight_am->format('H:i');
+                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+            
+                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                        $ot_from =  $ot_from ;
+                                    }
+                                    else{
+                                        $ot_from = $today_seven;
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){                                
+                                        if($is_double){
+                                            $double_ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }elseif ($is_one_point_five){
+                                            $one_point_five_ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }else{
+                                            $ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }    
+                                    }                            
+                                }
+        
+                                $total_ot_hours_double += $double_ot_hours_morning;
+                                $total_ot_hours_one_point_five += $one_point_five_ot_hours_morning;
+                                $total_ot_hours += $ot_hours_morning;
+                                
+                                if($off_time > $shift_end  && $totalworkinghours>=$afterothours){ //Evening ot
+                                    $ot_from = $shift_end;
+            
+                                    $next_date = $date->copy()->addDays(1);
+                                    $next_date = $next_date->format('Y-m-d');
+                                    $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start_);
+            
+                                    if($next_date_morning_shift_start < $off_time ){
+                                        $ot_to = $next_date_morning_shift_start;
+                                    }else{
+                                        $ot_to = $off_time;
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){
+                                        $ot_hours = 0;
+                                        $double_ot_hours=0;
+                                        $one_point_five_ot_hours = 0;
+            
+                                        if($is_double){
+                                            $double_ot_hours += round($ot_minutes / 60, 2);
+                                        }elseif ($is_one_point_five){
+                                            $one_point_five_ot_hours += round($ot_minutes / 60, 2);
+                                        }else{
+                                            $ot_hours += round($ot_minutes / 60, 2);
+                                        }    
+                                    }   
+                                    
+                                    if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
+                                        $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
+                                        $ot_hours=$weekafterdouble;
+                                    }  
+                                }
+
+                                $total_ot_hours_double += $double_ot_hours;
+                                $total_ot_hours_one_point_five += $one_point_five_ot_hours;
+                                $total_ot_hours += $ot_hours;
+                            }
+                        }
+                        else{
+                            if(!empty($spe_day_1_day)){//Special day ot
+                                if($day==$spe_day_1_day){
+                                    if($spe_day_1_type == 0){//As custom
+                                        if($spe_day_1_rate == 1 ){//Type 1
+                                            $ot_from = $on_time;
+                                            $ot_to = $off_time;
+                    
+                                            $seven_am = Carbon::parse($begining_checkin);
+                                            $seven_am_time = $seven_am->format('H:i');
+                                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+                    
+                                            $eight_am = Carbon::parse($onduty_time);
+                                            $eight_am_time = $eight_am->format('H:i');
+                                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+                    
+                                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                                $ot_from =  $today_eight;
+                                            }
+                    
+                                            $twelve_pm = Carbon::parse($earlystart);
+                                            $twelve_pm_time = $twelve_pm->format('H:i');
+                                            $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
+                    
+                                            $one_pm = Carbon::parse($earlyend);
+                                            $one_pm_time = $one_pm->format('H:i');
+                                            $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
+                    
+                                            if($ot_to >=$today_twelve && $ot_to < $today_one ){
+                                                $ot_to = $today_twelve;
+                                            }
+                    
+                                            if($lunchdeductstatus==1){
+                                                $deducthours=round($lunchdeductmin / 60, 2);
+                                                if($ot_to >= $today_one){
+                                                    $ot_to->subHours($deducthours);
+                                                }
+                                            }
+                    
+                                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                            if($spedeductpresent>0){
+                                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                            }
+                    
+                                            if($lunchdeductstatus==1){
+                                                $deducthours=round($lunchdeductmin / 60, 2);
+                                                if($ot_to >= $today_one){
+                                                    $ot_to->addHours($deducthours);
+                                                }
+                                            }
+                    
+                                            if($ot_minutes >= $otminimumminits){
+                                                $ot_hours = 0;
+                                                $double_ot_hours=0;
+                                                $one_point_five_ot_hours = 0;
+                                                $ot_hours = round($ot_minutes / 60, 2);
+                                                $total_ot_hours += $ot_hours;
+                                            }
+                                        }
+                                        else if($spe_day_1_rate == 2 ){//Type 2
+                                            $is_double = true;
+                                            $ot_from = $on_time;
+                                            $ot_to = $off_time;
+                    
+                                            $seven_am = Carbon::parse($begining_checkin);
+                                            $seven_am_time = $seven_am->format('H:i');
+                                            $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+                    
+                                            $eight_am = Carbon::parse($onduty_time);
+                                            $eight_am_time = $eight_am->format('H:i');
+                                            $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+                    
+                                            if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                                $ot_from =  $today_eight;
+                                            }
+                    
+                                            $twelve_pm = Carbon::parse($earlystart);
+                                            $twelve_pm_time = $twelve_pm->format('H:i');
+                                            $today_twelve = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$twelve_pm_time);
+                    
+                                            $one_pm = Carbon::parse($earlyend);
+                                            $one_pm_time = $one_pm->format('H:i');
+                                            $today_one = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$one_pm_time);
+                    
+                                            if($ot_to >=$today_twelve && $ot_to < $today_one ){
+                                                $ot_to = $today_twelve;
+                                            }
+                    
+                                            if($lunchdeductstatus==1){
+                                                $deducthours=round($lunchdeductmin / 60, 2);
+                                                if($ot_to >= $today_one){
+                                                    $ot_to->subHours($deducthours);
+                                                }
+                                            }
+                    
+                                            $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                            if($spedeductpresent>0){
+                                                $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                            }
+                    
+                                            if($lunchdeductstatus==1){
+                                                $deducthours=round($lunchdeductmin / 60, 2);
+                                                if($ot_to >= $today_one){
+                                                    $ot_to->addHours($deducthours);
+                                                }
+                                            }
+                    
+                                            if($ot_minutes >= $otminimumminits){
+                                                $ot_hours = 0;
+                                                $double_ot_hours=0;
+                                                $one_point_five_ot_hours = 0;
+                                                $double_ot_hours = round($ot_minutes / 60, 2);
+                                                $total_ot_hours_double += $double_ot_hours;
+                                            }
+                    
+                                        }
+                                    }
+                                }
+                            }
+                            else{ //Normal ot
+                                $ot_hours = 0;
+                                $double_ot_hours = 0;
+                                $one_point_five_ot_hours=0;
+                                $triple_ot_hours=0;
+                                $holidayot = 0;
+                                $holidaydouble = 0;
+                                $ot_hours_morning = 0;
+                                $double_ot_hours_morning = 0;
+                                $one_point_five_ot_hours_morning=0;
+                                $triple_ot_hours_morning=0;
+                                $poya_work_days=0;
+                                $sunday_work_days=0;
+                                $mercantile_work_days=0;
+                                $sunday_double_ot_hours=0;
+                                $poya_extend_ot=0;
+
+                                if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
+                                    $ot_from = $on_time;
+                                    $ot_to = $shift_start;
+            
+                                    $seven_am = Carbon::parse($begining_checkin);
+                                    $seven_am_time = $seven_am->format('H:i');
+                                    $today_seven = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$seven_am_time);
+                                    
+                                    $eight_am = Carbon::parse($onduty_time);
+                                    $eight_am_time = $eight_am->format('H:i');
+                                    $today_eight = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$eight_am_time);
+                                    
+                                    if ($ot_from > $today_seven && $ot_from < $today_eight ){
+                                        $ot_from =  $ot_from ;
+                                    }
+                                    else{
+                                        $ot_from = $today_seven;
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+
+                                    if($ot_minutes >= $otminimumminits){                                
+                                        if($is_double){
+                                            $double_ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }elseif ($is_one_point_five){
+                                            $one_point_five_ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }else{
+                                            $ot_hours_morning += round($ot_minutes / 60, 2);
+                                        }    
+                                    }                            
+                                }
+        
+                                $total_ot_hours_double += $double_ot_hours_morning;
+                                $total_ot_hours_one_point_five += $one_point_five_ot_hours_morning;
+                                $total_ot_hours += $ot_hours_morning;
+
+                                if($off_time > $shift_end && $totalworkinghours>=$afterothours){ //Evening ot
+                                    $ot_from = $shift_end;
+            
+                                    $next_date = $date->copy()->addDays(1);
+                                    $next_date = $next_date->format('Y-m-d');
+                                    $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start->format('h:i A'));
+            
+                                    if($next_date_morning_shift_start < $off_time ){
+                                        $ot_to = $next_date_morning_shift_start;
+                                    }else{
+                                        $ot_to = $off_time;
+                                    }
+            
+                                    $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                    if($spedeductpresent>0){
+                                        $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
+                                    }
+            
+                                    if($ot_minutes >= $otminimumminits){    
+                                        if($is_double){
+                                            $double_ot_hours += round($ot_minutes / 60, 2);
+                                        }elseif ($is_one_point_five){
+                                            $one_point_five_ot_hours += round($ot_minutes / 60, 2);
+                                        }else{
+                                            $ot_hours += round($ot_minutes / 60, 2);
+                                        }
+                                    }
+
+                                    if($weekafterdouble>0 && $weekafterdouble<$ot_hours){
+                                        $double_ot_hours=round(($ot_hours-$weekafterdouble), 2);
+                                        $ot_hours=$weekafterdouble;
+                                    }  
+                                }
+
+                                $total_ot_hours_double += $double_ot_hours;
+                                $total_ot_hours_one_point_five += $one_point_five_ot_hours;
+                                $total_ot_hours += $ot_hours;
+                            }
+                        }
+                    }
+
+                    $coveringend = null;
+                    $coveringhours = 0;
+
+                    $fromtime =0;
+                    $othours =0;
+
+                    $coveringdetail = DB::table('coverup_details')
+                    ->select('coverup_details.*') 
+                    ->where('emp_id', $emp_id)
+                    ->whereDate('date', $record_date)
+                    ->first();
+
+                    if ($coveringdetail) {
+                        $coveringend = Carbon::parse($coveringdetail->end_time);
+                        $coveringend = $record_date->copy()->setTime($coveringend->hour, $coveringend->minute, $coveringend->second);
+                        $coveringhours = $coveringdetail->covering_hours;
+                    }
+
+                    if($ot_hours > 0 && $coveringhours > 0){
+                        if($shifthours<$coveringhours){
+                            $coveringhours=$shifthours;
+                        }
+
+                        $newtotalot = $ot_hours - $coveringhours;
+                        $fromtime = $coveringend;
+                        $othours = $newtotalot;
+                    
+                    }else{
+
+                        $fromtime = Carbon::parse($ot_from);
+                        $othours = $ot_hours;
+                    }
+
+                    //Morning OT
+                    if($ot_hours_morning>0 | $double_ot_hours_morning>0 | $triple_ot_hours_morning>0){
+                        $ob = array(
+                            'emp_id' => $emp_id,
+                            'etf_no' => $emp->emp_etfno,
+                            'name' => $emp->emp_name_with_initial,
+                            'date' => $record_date->format('Y-m-d'),
+                            'day_name' => $date->format('l'),
+                            'from' => $on_time->format('Y-m-d h:i:s A'),
+                            'from_24' => $on_time->format('Y-m-d H:i:s'),
+                            'from_rfc' => $on_time->format('Y-m-d\TH:i:s'),
+                            'to' => $shift_start->format('Y-m-d h:i:s A'),
+                            'to_24' => $shift_start->format('Y-m-d H:i:s'),
+                            'to_rfc' => $shift_start->format('Y-m-d\TH:i:s'),
+                            'hours' => $ot_hours_morning,
+                            'double_hours' => $double_ot_hours_morning,
+                            'one_point_five_ot_hours' => $one_point_five_ot_hours,
+                            'triple_hours' => $triple_ot_hours_morning,
+                            'holiday_ot_hours' => $holidayot,
+                            'holiday_double_hours' => $holidaydouble,
+                            'poya_work_days' => $poya_work_days,
+                            'sunday_work_days' => $sunday_work_days,
+                            'mercantile_work_days' => $mercantile_work_days,
+                            'sunday_double_ot_hours' => $sunday_double_ot_hours,
+                            'poya_extend_ot' => $poya_extend_ot,
+                            'is_holiday' => $is_holiday,
+                        );
+                        array_push($ot_breakdown, $ob);
+                    }
+                    //Evening OT
+                    if($othours>0 | $double_ot_hours>0 | $triple_ot_hours>0 | $holidayot>0 | $holidaydouble>0){
+                        $ob = array(
+                            'emp_id' => $emp_id,
+                            'etf_no' => $emp->emp_etfno,
+                            'name' => $emp->emp_name_with_initial,
+                            'date' => $record_date->format('Y-m-d'),
+                            'day_name' => $date->format('l'),
+                            'from' => $fromtime->format('Y-m-d h:i:s A'),
+                            'from_24' => $fromtime->format('Y-m-d H:i:s'),
+                            'from_rfc' => $fromtime->format('Y-m-d\TH:i:s'),
+                            'to' => $ot_to->format('Y-m-d h:i:s A'),
+                            'to_24' => $ot_to->format('Y-m-d H:i:s'),
+                            'to_rfc' => $ot_to->format('Y-m-d\TH:i:s'),
+                            'hours' => $othours,
+                            'double_hours' => $double_ot_hours,
+                            'one_point_five_ot_hours' => $one_point_five_ot_hours,
+                            'triple_hours' => $triple_ot_hours,
+                            'holiday_ot_hours' => $holidayot,
+                            'holiday_double_hours' => $holidaydouble,
+                            'poya_work_days' => $poya_work_days,
+                            'sunday_work_days' => $sunday_work_days,
+                            'mercantile_work_days' => $mercantile_work_days,
+                            'sunday_double_ot_hours' => $sunday_double_ot_hours,
+                            'poya_extend_ot' => $poya_extend_ot,
+                            'is_holiday' => $is_holiday,
+                        );
+                        array_push($ot_breakdown, $ob);
+                    }
                 }
             }
         }
