@@ -501,10 +501,14 @@ class AttendanceApprovalController extends Controller
                     }
                 }
 
-
-				//Insert Work Rate Table
+                // IN Dushantha Eng they Prepare daily salary using Hour rate and Month salary  is prepared by day count
+                //Insert Work Rate Table
 				if($workHourDate === "Hour"){//Daily Or Weekly Salary
+                        $workingDaysCount = 0;
+                        $maxWorkingDays = 25;
+
 					foreach ($dateRange as $todayDate) {
+
 						$ignoredate = DB::table('ignore_days')
 							->select('ignore_days.*')
 							->whereDate('date', $todayDate)
@@ -532,22 +536,24 @@ class AttendanceApprovalController extends Controller
 							->get();
 	
 							if ($query->isNotEmpty()) {
-								$firsttimestamp = Carbon::parse($query->first()->firsttimestamp);
-								$lasttimestamp = Carbon::parse($query->first()->lasttimestamp);
-							
-								if ($firsttimestamp && $lasttimestamp && $firsttimestamp != $lasttimestamp) {
-									$diffInMinutes = $firsttimestamp->diffInMinutes($lasttimestamp);
-									$workHours = round($diffInMinutes / 60, 2);
-									$totalworkHours+= $workHours; 
-								}
+                                $workingDaysCount++;
+                                if($workingDaysCount <= $maxWorkingDays) {
+                                    $firsttimestamp = Carbon::parse($query->first()->firsttimestamp);
+                                    $lasttimestamp = Carbon::parse($query->first()->lasttimestamp);
+                                
+                                    if ($firsttimestamp && $lasttimestamp && $firsttimestamp != $lasttimestamp) {
+                                        $diffInMinutes = $firsttimestamp->diffInMinutes($lasttimestamp);
+                                        $workHours = round($diffInMinutes / 60, 2);
+                                        $totalworkHours+= $workHours; 
+                                    }
+                                }
+								
 							}
 	
 						}
 					}
-	
-					$totalweekworkshours = round($totalworkHours - ($normal_ot_hours + $double_ot_hours), 2);
 
-                    
+					$totalweekworkshours = round($totalworkHours - ($normal_ot_hours + $double_ot_hours), 2);
                     
 					if($salarystatus == 1 &&  $totalweekworkshours==0 && $empstatus == 1){
 						$data3 = array(

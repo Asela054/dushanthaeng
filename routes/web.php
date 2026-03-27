@@ -1629,6 +1629,17 @@ Route::get('mealattendancededuction', 'MealattendanceController@index')->name('m
 Route::post('generatemealallowancededuction', 'MealattendanceController@generateattendancemealdeduction')->name('generatemealallowancededuction');
 Route::post('approvemealdeduction', 'MealattendanceController@approvemealdeduction')->name('approvemealdeduction');
 
+// Employee Outside Working
+Route::get('outsideworking', 'EmployeeoutsideworkingController@index')->name('outsideworking');
+Route::post('outsideworkinginsert', 'EmployeeoutsideworkingController@store')->name('outsideworkinginsert');
+Route::post('outsideworkingedit', 'EmployeeoutsideworkingController@edit')->name('outsideworkingedit');
+Route::post('outsideworkingupdate', 'EmployeeoutsideworkingController@update')->name('outsideworkingupdate');
+Route::get('outsideworking/destroy/{id}', 'EmployeeoutsideworkingController@destroy');
+
+Route::get('outsideworking_approvel', 'EmployeeoutsideworkingController@outsideworking_approvel')->name('outsideworking_approvel');
+Route::post('generateoutsideworkingallowance', 'EmployeeoutsideworkingController@generateoutsideworkingallowance')->name('generateoutsideworkingallowance');
+Route::post('approveoutsideworkingallowance', 'EmployeeoutsideworkingController@approveoutsideworkingallowance')->name('approveoutsideworkingallowance');
+
 Route::get('/clear-cache', function() {
     Artisan::call('cache:clear');
     Artisan::call('config:clear');
