@@ -16,7 +16,15 @@ class OtApproved extends Model
         'hours',
         //'one_point_five_hours',
         'double_hours',
+        'triple_hours',
+        'holiday_normal_hours',
+        'holiday_double_hours',
         'is_holiday',
+        'sunday_work_days',
+        'poya_work_days',
+        'mercantile_work_days',
+        'sunday_double_ot_hrs',
+        'poya_extended_normal_ot_hrs',
         'created_at',
         'created_by'];
 

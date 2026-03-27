@@ -357,13 +357,13 @@
                         let is_holiday_cell = row.find('td:eq(11)');
                         
                         // Get input fields - FIXED: use row.find instead of cb_obj.find
-                        let holiday_ot_hours_input = row.find('td:eq(12) input');
-                        let holiday_doubleot_hours_input = row.find('td:eq(13) input');
-                        let sunday_dot_input = row.find('td:eq(14) input');
-                        let poya_exot_input = row.find('td:eq(15) input');
-                        let paya_days_input = row.find('td:eq(16) input');
-                        let mercantile_days_input = row.find('td:eq(17) input');
-                        let sunday_days_input = row.find('td:eq(18) input');
+                        let holiday_ot_hours_input = row.find('td:eq(12)');
+                        let holiday_doubleot_hours_input = row.find('td:eq(13)');
+                        let sunday_dot_input = row.find('td:eq(14)');
+                        let poya_exot_input = row.find('td:eq(15)');
+                        let paya_days_input = row.find('td:eq(16)');
+                        let mercantile_days_input = row.find('td:eq(17)');
+                        let sunday_days_input = row.find('td:eq(18)');
                         
                         // Get text values
                         let from = from_cell.text().trim();
@@ -373,14 +373,16 @@
                         let triple_hours = triple_hours_cell.text().trim();
                         let is_holiday = is_holiday_cell.text().trim();
                         
+
+
                         // Get input values - with fallback to 0 if empty
-                        let holiday_ot_hours = holiday_ot_hours_input.val() || '0';
-                        let holiday_double_hours = holiday_doubleot_hours_input.val() || '0';
-                        let sunday_dot = sunday_dot_input.val() || '0';
-                        let poya_exot = poya_exot_input.val() || '0';
-                        let paya_days = paya_days_input.val() || '0';
-                        let mercantile_days = mercantile_days_input.val() || '0';
-                        let sunday_days = sunday_days_input.val() || '0';
+                         let holiday_ot_hours =holiday_ot_hours_input.text().trim();
+                        let holiday_double_hours = holiday_doubleot_hours_input.text().trim();
+                        let sunday_dot = sunday_dot_input.text().trim();
+                        let poya_exot = poya_exot_input.text().trim();
+                        let paya_days = paya_days_input.text().trim();
+                        let mercantile_days = mercantile_days_input.text().trim();
+                        let sunday_days = sunday_days_input.text().trim();
 
                             let ot_data_obj = {
                                 emp_id: emp_id,
