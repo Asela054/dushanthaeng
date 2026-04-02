@@ -134,6 +134,12 @@
                                             class="form-control form-control-sm" required />
                                     </div>
                                     <div class="col-md-3">
+                                        <label class="small font-weight-bold text-dark">Special OT Increase
+                                            Precentage(%)</label>
+                                        <input type="number" name="ot_increase_percentage" step="0.01" id="ot_increase_percentage"
+                                            class="form-control form-control-sm" required />
+                                    </div>
+                                    <div class="col-md-3">
                                         <label class="small font-weight-bold text-dark">Shift Hours</label>
                                         <input type="number" name="shift_hours" step="0.01" id="shift_hours"
                                             class="form-control form-control-sm" required />
@@ -143,16 +149,16 @@
                                         <input type="number" name="holiday_work_hours" id="holiday_work_hours"
                                             class="form-control form-control-sm" required />
                                     </div>
+                                </div>
+
+                                <div class="form-row mb-2">
                                     <div class="col-md-3">
                                         <label class="small font-weight-bold text-dark">After how hours W.Days
                                             Double?</label>
                                         <input type="number" name="week_after_double" id="week_after_double"
                                             class="form-control form-control-sm" required />
                                     </div>
-                                </div>
-
-                                <div class="form-row mb-2">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="small font-weight-bold text-dark">Working Calculation</label>
                                         <br>
                                         <div class="form-check-inline">
@@ -166,7 +172,7 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="small font-weight-bold text-dark">Lunch Hours Deduct</label>
                                         <br>
                                         <div class="form-check-inline">
@@ -180,7 +186,7 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 custom_lunch" style="display: none">
+                                    <div class="col-md-3 custom_lunch" style="display: none">
                                     <label class="small font-weight-bold text-dark">Lunch Deduction Minutes</label>
                                         <br>
                                         <div class="form-check-inline">
@@ -810,6 +816,7 @@ $(document).ready(function(){
                     $('#ot_app_hours').val(data.result.ot_app_hours);
                     $('#holiday_ot_minimum_min').val(data.result.holiday_ot_minimum_min);
                     $('#spe_deduct_pre').val(data.result.spe_deduct_pre);
+                    $('#ot_increase_percentage').val(data.result.ot_increase_percentage);
                     $('#shift_hours').val(data.result.shift_hours);
                     // $('#otdeduct').val(data.result.otdeduct);
                     // $('#nopaydeduct').val(data.result.nopaydeduct);

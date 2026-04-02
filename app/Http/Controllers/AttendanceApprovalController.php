@@ -354,7 +354,8 @@ class AttendanceApprovalController extends Controller
                 'employees.emp_name_with_initial',
                 'branches.location',
                 'departments.name as dept_name',
-                'job_categories.late_attend_min'                
+                'job_categories.late_attend_min',
+                'job_categories.ot_increase_percentage'                
             )
             ->from('employees as employees')
             // ->leftJoin('attendances as at1', 'employees.emp_id', '=', 'at1.uid')
@@ -431,6 +432,12 @@ class AttendanceApprovalController extends Controller
             $sundaydouble_ot_hours = (new \App\OtApproved)->get_sundaydouble_ot_hours_monthly($record->emp_id, $month, $closedate);
             $poyaextended_normal_othours = (new \App\OtApproved)->get_poyaextended_normal_othours_monthly($record->emp_id, $month, $closedate);
 
+            $increaseot = 0;
+            $incre_precentage = $record->ot_increase_percentage;
+            if(!empty($incre_precentage)){
+                $increaseot =  ($normal_ot_hours * $incre_precentage)/100;
+                $normal_ot_hours = $normal_ot_hours + $increaseot;
+            }
 
             
 
