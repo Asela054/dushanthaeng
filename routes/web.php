@@ -1640,6 +1640,14 @@ Route::get('outsideworking_approvel', 'EmployeeoutsideworkingController@outsidew
 Route::post('generateoutsideworkingallowance', 'EmployeeoutsideworkingController@generateoutsideworkingallowance')->name('generateoutsideworkingallowance');
 Route::post('approveoutsideworkingallowance', 'EmployeeoutsideworkingController@approveoutsideworkingallowance')->name('approveoutsideworkingallowance');
 
+/*-- out side employees----*/
+Route::resource('OutsideEmployee', 'OutsideEmployees\OutsideEmployeeController');
+Route::get('OutsideEmployee',['uses' => 'OutsideEmployees\OutsideEmployeeController@index', 'as' => 'OutsideEmployee']); 
+Route::post('addOutsideEmployee',['uses' => 'OutsideEmployees\OutsideEmployeeController@store', 'as' => 'addOutsideEmployee']); 
+Route::post('OutsideEmployee/update', 'OutsideEmployees\OutsideEmployeeController@update')->name('OutsideEmployee.update');
+Route::get('OutsideEmployee/destroy/{id}', 'OutsideEmployees\OutsideEmployeeController@destroy');
+/*-- out side employees----*/
+
 Route::get('/clear-cache', function() {
     Artisan::call('cache:clear');
     Artisan::call('config:clear');
