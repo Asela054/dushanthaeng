@@ -33,6 +33,8 @@
         </ul>
   </div>
 
+  <a role="button" class="btn navbtncolor" href="{{ route('OutsideEmployee') }}" id="outsideemployees">Outside Employees <span class="caret"></span></a>
+
   <div class="dropdown">
     <a role="button" data-toggle="dropdown" class="btn navbtncolor" href="#" id="training">
         Training Management <span class="caret"></span></a>
