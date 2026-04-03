@@ -171,11 +171,12 @@ class EmployeeoutsideworkingController extends Controller
               // Only add to array if there are visits to outside locations
                 if ($outsideWorkCount > 0) {
                     // Get the allowance amount
-                    $allowanceConfig = DB::table('amount_configuration')
-                        ->where('id', 1)
+                    $allowanceConfig = DB::table('outside_employees')
+                        ->where('emp_id', $record->emp_id)
+                        ->where('status',1)
                         ->first();
                     
-                    $allowanceAmount = $allowanceConfig ? $allowanceConfig->pay_amount : 0;
+                    $allowanceAmount = $allowanceConfig ? $allowanceConfig->amount : 0;
                     $totalAllowance = $outsideWorkCount * $allowanceAmount;
                     
                     $data[] = [

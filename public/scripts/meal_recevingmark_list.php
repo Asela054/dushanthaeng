@@ -66,7 +66,7 @@ require('ssp.customized.class.php');
     }
     if (!empty($_POST['department'])) {
         $department = $_POST['department'];
-        $sql .= " AND `epa`.`emp_department` = '$department'";
+        $sql .= " AND `e`.`emp_department` = '$department'";
     }
     if (!empty($_POST['mealtype'])) {
         $meal_type = $_POST['mealtype'];
