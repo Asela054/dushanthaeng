@@ -11,7 +11,7 @@
                 <div class="page-header-content py-3 px-2">
                     <h1 class="page-header-title ">
                         <div class="page-header-icon"><i class="fa-light fa-utensils"></i></div>
-                        <span>Meal Deduction Approve (Penalty)</span>
+                        <span>Meal Deduction Approve</span>
                     </h1>
                 </div>
             </div>
@@ -51,8 +51,12 @@
                                     <th>EMPLOYEE ID</th>
                                     <th>EMPLOYEE</th>
                                     <th>TAKEN COUNT</th>
+                                    <th>ALLOWANCE</th>
                                     <th>NOT TAKEN COUNT</th>
-                                    <th>DEDUCTION AMOUNT</th>
+                                    <th>(PENALTY)DEDUCTION AMOUNT</th>
+                                    <th>ATTENDANCE</th>
+                                    <th>ATTENDANCE DEDUCTION</th>
+                                    <th>TOTAL DEDUCTION</th>
                                     <th class="d-none">EMPLOYEE AUTO ID</th>
                                 </tr>
                             </thead>
@@ -157,8 +161,18 @@
                             <form class="form-horizontal" id="formApprove">
                                 <div class="form-group mb-1">
                                     <div class="col-12">
-                                         <label class="small font-weight-bolder text-dark">Deduction Type</label>
+                                         <label class="small font-weight-bolder text-dark">Deduction Type For Penelty Deduction</label>
                                             <select name="remunitiontype" id="remunitiontype" class="form-control form-control-sm">
+                                                <option value="">Select Remuneration</option>
+                                                    @foreach ($remunerations as $remuneration){
+                                                        <option value="{{$remuneration->id}}" >{{$remuneration->remuneration_name}}</option>
+                                                    }  
+                                                    @endforeach
+                                            </select>
+                                    </div>
+                                     <div class="col-12">
+                                         <label class="small font-weight-bolder text-dark">Deduction Type For Meal Attendnce Deduction </label>
+                                            <select name="remunitiontypeattendance" id="remunitiontypeattendance" class="form-control form-control-sm">
                                                 <option value="">Select Remuneration</option>
                                                     @foreach ($remunerations as $remuneration){
                                                         <option value="{{$remuneration->id}}" >{{$remuneration->remuneration_name}}</option>
@@ -284,7 +298,11 @@ $(document).ready(function(){
                                         <td>${item.emp_id}</td>
                                         <td>${item.emp_name_with_initial}</td>
                                         <td>${item.total_taken_count}</td>
+                                        <td>${item.meal_allowance}</td>
                                         <td>${item.total_not_taken_count}</td>
+                                        <td>${item.penalty_deduction}</td>
+                                        <td>${item.attendance_days}</td>
+                                        <td>${item.attendance_deduction}</td>
                                         <td>${item.total_deduction}</td>
                                         <td class="d-none">${item.emp_autoid}</td>
                                     </tr>`;
@@ -349,8 +367,11 @@ $(document).ready(function(){
                 $('#btn-approve').on('click', function (e) {
                     e.preventDefault();
                       var remunitiontype = $('#remunitiontype').val();
+                       var remunitiontypeattendance = $('#remunitiontypeattendance').val();
+                        let from_date = $('#from_date').val();
+                        let to_date = $('#to_date').val();
 
-                       if(remunitiontype == ''){
+                       if(remunitiontype == '' || remunitiontypeattendance == ''){
                                 Swal.fire({
                                     position: "top-end",
                                     icon: 'warning',
@@ -369,9 +390,13 @@ $(document).ready(function(){
                                         empid: rowData[1],
                                         emp_name: rowData[2],
                                         total_taken: rowData[3],
-                                        total_not_taken: rowData[4],
-                                        total_deduction: rowData[5],
-                                        autoid: rowData[6],
+                                        meal_allowance: rowData[4],
+                                        total_nottaken: rowData[5],
+                                        penalty_deduction: rowData[6],
+                                        attendance_days: rowData[7],
+                                        attendance_deduction: rowData[8],
+                                        total_deduction: rowData[9],
+                                        autoid: rowData[10],
                                     });
                                 }
                             });
@@ -391,6 +416,9 @@ $(document).ready(function(){
                                     data: {
                                         records: selectedRowIdsapprove,
                                         remunitiontype: remunitiontype,
+                                        remunitiontypeattendance: remunitiontypeattendance,
+                                        from_date: from_date,
+                                        to_date: to_date,
                                     },
                                     success: function (data) {
                                         $('#approve_button').html('Approve').prop('disabled', false);
@@ -446,7 +474,7 @@ $(document).ready(function(){
 function showInitialMessage() {
         $('#dataTable tbody').html(
             '<tr>' +
-            '<td colspan="6" class="text-center py-5">' + // Changed colspan to 9 to match your columns
+            '<td colspan="10" class="text-center py-5">' + // Changed colspan to 9 to match your columns
             '<div class="d-flex flex-column align-items-center">' +
             '<i class="fas fa-filter fa-3x text-muted mb-2"></i>' +
             '<h4 class="text-muted mb-2">No Records Found</h4>' +
