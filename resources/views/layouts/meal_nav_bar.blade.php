@@ -16,7 +16,7 @@
   
    <a role="button" class="btn navbtncolor" href="{{ route('mealfinalaaprovel') }}" id="taskapprove">Meal Deduction Approve <span class="caret"></span></a>
 
-    <a role="button" class="btn navbtncolor" href="{{ route('mealattendancededuction') }}" id="attendancetaskapprove">Meal Allowance Approve<span class="caret"></span></a>
+    {{-- <a role="button" class="btn navbtncolor" href="{{ route('mealattendancededuction') }}" id="attendancetaskapprove">Meal Allowance Approve<span class="caret"></span></a> --}}
  
 </div>
 

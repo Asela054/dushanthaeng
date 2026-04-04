@@ -1625,9 +1625,13 @@ Route::get('mealfinalaaprovel', 'MealrecivedController@finalaaprovel')->name('me
 Route::post('generatemealdeduction', 'MealrecivedController@generatemealdeduction')->name('generatemealdeduction');
 Route::post('approvemealpeneltydeduction', 'MealrecivedController@approvemealpeneltydeduction')->name('approvemealpeneltydeduction');
 
+Route::post('/approvedmealrequestsdelete' ,'MealrecivedController@delete')->name('approvedmealrequestsdelete');
+
 Route::get('mealattendancededuction', 'MealattendanceController@index')->name('mealattendancededuction');
 Route::post('generatemealallowancededuction', 'MealattendanceController@generateattendancemealdeduction')->name('generatemealallowancededuction');
 Route::post('approvemealdeduction', 'MealattendanceController@approvemealdeduction')->name('approvemealdeduction');
+
+
 
 // Employee Outside Working
 Route::get('outsideworking', 'EmployeeoutsideworkingController@index')->name('outsideworking');

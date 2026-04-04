@@ -55,6 +55,7 @@
                                         <th>MEAL</th>
                                         <th>TYPE</th>
                                         <th>MARKED</th>
+                                        <th>ACTION</th>
                                         <th class="d-none">ID</th>
                                         <th class="d-none">EMPNAME</th>
                                         <th class="d-none">CALLING</th>
@@ -350,6 +351,21 @@ $(document).ready(function(){
                             return data;
                         }
                     },
+                    {
+                        data: 'id',
+                        name: 'action',
+                        className: 'text-right',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            var buttons = '';
+
+                             if (row.received_status != 0) {
+                                    buttons += '<button type="submit" name="delete" id="'+row.id+'" class="delete btn btn-danger btn-sm" data-toggle="tooltip" title="Remove"><i class="far fa-trash-alt"></i></button>';
+                                }
+                            return buttons;
+                        }
+                    },
                     { data: "emp_name_with_initial", 
                       name: "emp_name_with_initial", 
                       visible: false
@@ -487,10 +503,39 @@ $(document).ready(function(){
             $('#location').val(null).trigger('change');
         });
 
-
-
-
-
+           var user_id;
+            $(document).on('click', '.delete',async function () {
+                user_id = $(this).attr('id');
+                var r = await Otherconfirmation("You want to remove this ? ");
+                if (r == true) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    })
+                    
+                    $.ajax({
+                        url: '{!! route("approvedmealrequestsdelete") !!}',
+                        type: 'POST',
+                        dataType: "json",
+                        data: {
+                            id: user_id
+                        },
+                        success: function (data) {
+                            const actionObj = {
+                                icon: 'fas fa-trash-alt',
+                                title: '',
+                                message: 'Record Remove Successfully',
+                                url: '',
+                                target: '_blank',
+                                type: 'danger'
+                            };
+                            const actionJSON = JSON.stringify(actionObj, null, 2);
+                            actionreload(actionJSON);
+                        }
+                    })
+                }
+            });
 
 
 });
