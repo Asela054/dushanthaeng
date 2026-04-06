@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\employeeWorkRate;
 use App\Helpers\UserHelper;
 use App\Holiday;
+use App\OtApproved;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -418,6 +419,7 @@ class AttendanceApprovalController extends Controller
 
             $double_ot_hours = (new \App\OtApproved)->get_double_ot_hours_monthly($record->emp_id, $month, $closedate);
 
+            
             $triple_ot_hours = (new \App\OtApproved)->get_triple_ot_hours_monthly($record->emp_id, $month, $closedate);
 
             $auditattedance = (new \App\Auditattendace)->apply_audit_attedance($record->emp_auto_id,$record->emp_id, $month);
@@ -506,6 +508,9 @@ class AttendanceApprovalController extends Controller
 				if($workHourDate === "Hour"){//Daily Or Weekly Salary
                         $workingDaysCount = 0;
                         $maxWorkingDays = 25;
+                        $total_ot_hours = 0;
+                        $total_double_ot_hours = 0;
+                        $first25WorkingDates = [];
 
 					foreach ($dateRange as $todayDate) {
 
@@ -537,7 +542,10 @@ class AttendanceApprovalController extends Controller
 	
 							if ($query->isNotEmpty()) {
                                 $workingDaysCount++;
+
                                 if($workingDaysCount <= $maxWorkingDays) {
+                                     $first25WorkingDates[] = $todayDate;
+
                                     $firsttimestamp = Carbon::parse($query->first()->firsttimestamp);
                                     $lasttimestamp = Carbon::parse($query->first()->lasttimestamp);
                                 
@@ -553,7 +561,22 @@ class AttendanceApprovalController extends Controller
 						}
 					}
 
-					$totalweekworkshours = round($totalworkHours - ($normal_ot_hours + $double_ot_hours), 2);
+                  if (!empty($first25WorkingDates)) {
+
+                        $otData = OtApproved::where('emp_id', $record->emp_id)
+                            ->whereIn('date', $first25WorkingDates)
+                            ->select(
+                                DB::raw('COALESCE(SUM(hours), 0) as total_hours'),
+                                DB::raw('COALESCE(SUM(double_hours), 0) as total_double_hours')
+                            )
+                            ->first();
+                        
+                        $total_ot_hours = $otData->total_hours;
+                        $total_double_ot_hours = $otData->total_double_hours;
+                    }
+
+					$totalweekworkshours = round($totalworkHours - ($total_ot_hours + $total_double_ot_hours), 2);
+                    
                     
 					if($salarystatus == 1 &&  $totalweekworkshours==0 && $empstatus == 1){
 						$data3 = array(
