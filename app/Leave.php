@@ -195,5 +195,22 @@ class Leave extends Model
     }
 
 
+     public function get_duty_leaves($emp_id, $month ,$closedate){
+
+        $query = DB::table('leaves')
+            ->select(DB::raw('SUM(no_of_days) as total'))
+            ->where('emp_id', '=' , $emp_id)
+            ->where('leave_from', 'like',  $month . '%')
+            ->where('leave_from', '<=', $closedate)
+            ->where('leave_type', '=', '6')
+            ->where('status', '=', 'Approved');
+
+        $dutyleaves = $query->get();
+        $total_dutyleaves = (!empty($dutyleaves[0]->total)) ? $dutyleaves[0]->total : 0;
+
+        return $total_dutyleaves;
+    }
+
+
 
 }
