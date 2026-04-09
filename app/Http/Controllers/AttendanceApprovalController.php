@@ -394,6 +394,7 @@ class AttendanceApprovalController extends Controller
             $totalmercantilenopay = 0;
             $excess_workingdays = 0;
 
+            
             $work_days = (new \App\Attendance)->get_work_days($record->emp_id, $month, $closedate);
             $working_week_days_arr = (new \App\Attendance)->get_working_week_days($record->emp_id, $month, $closedate);
             $working_week_days = $working_week_days_arr['no_of_working_workdays'];
@@ -430,6 +431,7 @@ class AttendanceApprovalController extends Controller
 
             $sundaywork_days = (new \App\OtApproved)->get_sundaywork_days_monthly($record->emp_id, $month, $closedate);
             $poyawork_days = (new \App\OtApproved)->get_poyawork_days_monthly($record->emp_id, $month, $closedate);
+
             $mercantilework_days = (new \App\OtApproved)->get_mercantilework_days_monthly($record->emp_id, $month, $closedate);
             $sundaydouble_ot_hours = (new \App\OtApproved)->get_sundaydouble_ot_hours_monthly($record->emp_id, $month, $closedate);
             $poyaextended_normal_othours = (new \App\OtApproved)->get_poyaextended_normal_othours_monthly($record->emp_id, $month, $closedate);
@@ -441,7 +443,7 @@ class AttendanceApprovalController extends Controller
                 $normal_ot_hours = $normal_ot_hours + $increaseot;
             }
 
-            
+            $mercantilenopay = $poyawork_days  + $mercantilework_days;
 
             if(!empty($record->date)){
 				$year_rec = Carbon::createFromFormat('Y-m-d H:i:s', $record->date)->year;
@@ -630,9 +632,9 @@ class AttendanceApprovalController extends Controller
                                     'holiday_double_ot_hrs' => $holiday_double_ot_hours,
                                     'sunday_work_days' => $sundaywork_days,
                                     'poya_work_days' => $poyawork_days,
-                                    'poya_nopay_days' => $totalpayanopay,
+                                    'poya_nopay_days' => $poyawork_days,
                                     'mercantile_work_days' => $mercantilework_days,
-                                    'mercantile_nopay_days' => $totalmercantilenopay,
+                                    'mercantile_nopay_days' => $mercantilenopay,
                                     'sunday_double_ot_hrs' => $sundaydouble_ot_hours,
                                     'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
                                     'absent_nopay' => $absent_no_pay_days,
