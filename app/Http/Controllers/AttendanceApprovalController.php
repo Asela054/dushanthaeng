@@ -379,6 +379,7 @@ class AttendanceApprovalController extends Controller
             $query->where(['departments.id' => $department]);
         }
 
+        $query->where('employees.emp_id', 9);
         $query->where('employees.deleted', 0);
         $query->where('employees.is_resigned', 0);
         
@@ -440,6 +441,7 @@ class AttendanceApprovalController extends Controller
             $sundaydouble_ot_hours = (new \App\OtApproved)->get_sundaydouble_ot_hours_monthly($record->emp_id, $month, $closedate);
             $poyaextended_normal_othours = (new \App\OtApproved)->get_poyaextended_normal_othours_monthly($record->emp_id, $month, $closedate);
 
+          
             $increaseot = 0;
             $incre_precentage = $record->ot_increase_percentage;
             if(!empty($incre_precentage)){
@@ -447,7 +449,7 @@ class AttendanceApprovalController extends Controller
                 $normal_ot_hours = $normal_ot_hours + $increaseot;
             }
 
-            $mercantilenopay = $poyawork_days  + $mercantilework_days;
+          // $mercantilenopay = $poyawork_days  + $mercantilework_days;
 
             if(!empty($record->date)){
 				$year_rec = Carbon::createFromFormat('Y-m-d H:i:s', $record->date)->year;
@@ -646,7 +648,7 @@ class AttendanceApprovalController extends Controller
                                     'poya_work_days' => $poyawork_days,
                                     'poya_nopay_days' => $poyawork_days,
                                     'mercantile_work_days' => $mercantilework_days,
-                                    'mercantile_nopay_days' => $mercantilenopay,
+                                    'mercantile_nopay_days' => $mercantilework_days,
                                     'sunday_double_ot_hrs' => $sundaydouble_ot_hours,
                                     'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
                                     'absent_nopay' => $absent_no_pay_days,
