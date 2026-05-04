@@ -49,6 +49,7 @@ class Leave extends Model
             ->where('leave_from', 'like',  $month . '%')
             ->where('leave_from', '<=', $closedate)
             ->where('leave_type', '=', '3')
+            ->where('reson', '!=', 'ABSENT NOPAY2')
             ->where('status', '=', 'Approved');
 
         $no_pay_days_data = $query->get();
