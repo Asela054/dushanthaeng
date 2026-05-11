@@ -394,6 +394,8 @@ class AttendanceApprovalController extends Controller
             $totalpayanopay = 0;
             $totalmercantilenopay = 0;
             $excess_workingdays = 0;
+            $excess_workingdays = 0;
+            $excess_workingdays = 0;
 
             
             $work_days = (new \App\Attendance)->get_work_days($record->emp_id, $month, $closedate);
@@ -414,18 +416,13 @@ class AttendanceApprovalController extends Controller
 
             $leave_days = (new \App\Leave)->get_leave_days($record->emp_id, $month , $closedate);
             $no_pay_days = (new \App\Leave)->get_no_pay_days($record->emp_id, $month, $closedate);
-
             $absent_no_pay_days = (new \App\Leave)->get_absent_no_pay_days($record->emp_id, $month, $closedate);
-
             $duty_leaves = (new \App\Leave)->get_duty_leaves($record->emp_id, $month, $closedate);
 
 
            
             $normal_ot_hours = (new \App\OtApproved)->get_ot_hours_monthly($record->emp_id, $month, $closedate);
-
             $double_ot_hours = (new \App\OtApproved)->get_double_ot_hours_monthly($record->emp_id, $month, $closedate);
-
-            
             $triple_ot_hours = (new \App\OtApproved)->get_triple_ot_hours_monthly($record->emp_id, $month, $closedate);
 
             $auditattedance = (new \App\Auditattendace)->apply_audit_attedance($record->emp_auto_id,$record->emp_id, $month);
@@ -433,15 +430,18 @@ class AttendanceApprovalController extends Controller
 
             $holiday_ot_hours = (new \App\OtApproved)->get_holiday_ot_hours_monthly($record->emp_id, $month, $closedate);
             $holiday_double_ot_hours = (new \App\OtApproved)->get_holiday_double_ot_hours_monthly($record->emp_id, $month, $closedate);
-
             $sundaywork_days = (new \App\OtApproved)->get_sundaywork_days_monthly($record->emp_id, $month, $closedate);
-            $poyawork_days = (new \App\OtApproved)->get_poyawork_days_monthly($record->emp_id, $month, $closedate);
-
-            $mercantilework_days = (new \App\OtApproved)->get_mercantilework_days_monthly($record->emp_id, $month, $closedate);
             $sundaydouble_ot_hours = (new \App\OtApproved)->get_sundaydouble_ot_hours_monthly($record->emp_id, $month, $closedate);
             $poyaextended_normal_othours = (new \App\OtApproved)->get_poyaextended_normal_othours_monthly($record->emp_id, $month, $closedate);
 
-          
+            $poyawork_result = (new \App\OtApproved)->get_poyawork_days_monthly($record->emp_id, $month, $closedate);
+            $poyawork_days = $poyawork_result->total_days;
+            $poyawork_hours = $poyawork_result->total_hours;
+
+            $mercantilework_result = (new \App\OtApproved)->get_mercantilework_days_monthly($record->emp_id, $month, $closedate);
+            $mercantilework_days = $mercantilework_result->total_days;
+            $mercantilework_hours = $mercantilework_result->total_hours;
+
             $increaseot = 0;
             $incre_precentage = $record->ot_increase_percentage;
             if(!empty($incre_precentage)){
@@ -653,6 +653,8 @@ class AttendanceApprovalController extends Controller
                                     'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
                                     'absent_nopay' => $absent_no_pay_days,
                                     'excess_working_days' => $excess_workingdays,
+                                    'poya_day_work_hours' => $poyawork_hours,
+                                    'mercantile_work_hours' => $mercantilework_hours,
                                     'created_at' => date('Y-m-d H:i:s'),
                                     'updated_at' => date('Y-m-d H:i:s')
                                 );
@@ -716,6 +718,8 @@ class AttendanceApprovalController extends Controller
                             'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
                             'absent_nopay' => $absent_no_pay_days,
                             'excess_working_days' => $excess_workingdays,
+                            'poya_day_work_hours' => $poyawork_hours,
+                            'mercantile_work_hours' => $mercantilework_hours,
 							'created_at' => date('Y-m-d H:i:s'),
 							'updated_at' => date('Y-m-d H:i:s')
 						);

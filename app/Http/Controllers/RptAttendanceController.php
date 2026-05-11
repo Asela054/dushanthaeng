@@ -380,6 +380,7 @@ class RptAttendanceController extends Controller
 
                  $query = DB::table('employees')
                     ->select(
+                        'employees.id',
                         'employees.emp_id',
                         'employees.emp_name_with_initial',
                         'employees.calling_name',
@@ -410,6 +411,12 @@ class RptAttendanceController extends Controller
 
             foreach ($employees as $record) {
                 $period = CarbonPeriod::create($from_date, $to_date);
+
+                 $payrollProfile = DB::table('payroll_profiles')
+                                    ->where('emp_id', $record->id)
+                                    ->first();
+
+
                 foreach ($period as $date) {
                     $f_date = $date->format('Y-m-d');
                     $dayOfWeek = $date->dayOfWeek;
@@ -431,6 +438,23 @@ class RptAttendanceController extends Controller
 
                     $attendances = DB::select($sql);
 
+                        // Get OT approved data for this date
+                        $otApproved = DB::table('ot_approved')
+                            ->where('emp_id', $record->emp_id)
+                            ->where('date', $f_date)
+                            ->first();
+                    
+                        
+                        // Initialize salary and OT variables
+                        $day_salary = 0;
+                        $normal_ot = 0;
+                        $double_ot = 0;
+                        
+                        // Calculate day salary
+                        if ($payrollProfile && $payrollProfile->day_salary) {
+                            $day_salary = $payrollProfile->day_salary;
+                        }
+                    
                     if (!empty($attendances)) {
                         $to = \Carbon\Carbon::parse($attendances[0]->lasttimestamp);
                         $from = \Carbon\Carbon::parse($attendances[0]->timestamp);
@@ -454,6 +478,35 @@ class RptAttendanceController extends Controller
                         if ($last_time_stamp != '') {
                             $last_time_stamp = \Carbon\Carbon::parse($last_time_stamp)->format('H:i');
                         }
+                
+                        if ($otApproved) {
+
+                            $normal_ot = ($otApproved->hours ?? 0) + 
+                                    ($otApproved->holiday_normal_hours ?? 0) +
+                                    ($otApproved->poya_extended_normal_ot_hrs ?? 0);
+
+                            $double_ot = ($otApproved->double_hours ?? 0) + 
+                                        ($otApproved->holiday_double_hours ?? 0) +
+                                        ($otApproved->sunday_double_ot_hrs ?? 0);
+                        }
+                        
+                    }else{
+
+                           $leave = DB::table('leaves')
+                                        ->leftJoin('leave_types', 'leaves.leave_type', '=', 'leave_types.leave_type')
+                                        ->where('leaves.emp_id', $record->emp_id)
+                                        ->where('leaves.status', 'approved') // Adjust status as needed
+                                        ->where(function($query) use ($f_date) {
+                                            $query->whereDate('leaves.leave_from', '<=', $f_date)
+                                                ->whereDate('leaves.leave_to', '>=', $f_date);
+                                        })
+                                        ->select('leaves.*', 'leave_types.leave_type as leave_type_name')
+                                        ->first();
+
+                            if ($leave) {
+                                    $leave_type_name = $leave->leave_type_name;
+                                }
+                    }
 
                         if ($record->dept_name == null) {
                             $record->dept_name = '-';
@@ -467,34 +520,20 @@ class RptAttendanceController extends Controller
                         $objattendance->b_location = $record->b_location;
                         $objattendance->dept_name = $record->dept_name;
                         $objattendance->dept_id = $record->dept_id;
-                        $objattendance->date = $rec_date;
-                        $objattendance->timestamp = $first_time_stamp;
-                        $objattendance->lasttimestamp = $last_time_stamp;
-                        $objattendance->workhours = $workhours;
+                        $objattendance->date = isset($rec_date) ? $rec_date : $f_date;
+                        $objattendance->timestamp = $first_time_stamp ?? '-';
+                        $objattendance->lasttimestamp = $last_time_stamp ?? '-';
+                        $objattendance->workhours = $workhours ?? '-';
                         $objattendance->location = $record->b_location;
                         $objattendance->day_type = $day_type;
-
-                        array_push($atte_arr, $objattendance);
-                    } else {
-                        $objattendance = new stdClass();
-                        $objattendance->emp_id = $record->emp_id;
-                        $objattendance->emp_name_with_initial = $record->emp_name_with_initial;
-                        $objattendance->calling_name = $record->calling_name;
-                        $objattendance->emp_etfno = $record->emp_etfno;
-                        $objattendance->b_location = $record->b_location;
-                        $objattendance->dept_name = $record->dept_name;
-                        $objattendance->dept_id = $record->dept_id;
-                        $objattendance->date = $f_date;
-                        $objattendance->timestamp = '-';
-                        $objattendance->lasttimestamp = '-';
-                        $objattendance->workhours = '-';
-                        $objattendance->location = $record->b_location;
-                        $objattendance->day_type = $day_type;
+                        $objattendance->day_salary = $day_salary;
+                        $objattendance->normal_ot_hours = $normal_ot;
+                        $objattendance->double_ot_hours = $double_ot;
+                        $objattendance->leave_type = $leave_type_name ??  '-';
 
                         array_push($atte_arr, $objattendance);
                         $not_att_count++;
                     }
-                }
             }
 
             $obj = new stdClass();
