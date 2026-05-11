@@ -100,24 +100,6 @@ class OtApproved extends Model
         return $sundaywork_days;
     }
 
-    public function get_poyawork_days_monthly($emp_id, $month ,$closedate)
-    {
-        $poyawork_days = OtApproved::where('emp_id', $emp_id)
-                            ->where('date', 'like', $month.'%')
-                            ->where('date', '<=', $closedate)
-                            ->sum('poya_work_days');
-        return $poyawork_days;
-    }
-
-    public function get_mercantilework_days_monthly($emp_id, $month ,$closedate)
-    {
-        $mercantilework_days = OtApproved::where('emp_id', $emp_id)
-                            ->where('date', 'like', $month.'%')
-                            ->where('date', '<=', $closedate)
-                            ->sum('mercantile_work_days');
-        return $mercantilework_days;
-    }
-
     public function get_sundaydouble_ot_hours_monthly($emp_id, $month ,$closedate)
     {
         $sundaydouble_ot_hours = OtApproved::where('emp_id', $emp_id)
@@ -135,5 +117,100 @@ class OtApproved extends Model
                             ->sum('poya_extended_normal_ot_hrs');
         return $poyaextended_normal_othours;
     }
+
+    // public function get_poyawork_days_monthly($emp_id, $month ,$closedate)
+    // {
+    //     $poyawork_days = OtApproved::where('emp_id', $emp_id)
+    //                         ->where('date', 'like', $month.'%')
+    //                         ->where('date', '<=', $closedate)
+    //                         ->sum('poya_work_days');
+
+                            
+    //     return $poyawork_days;
+    // }
+
+      public function get_poyawork_days_monthly($emp_id, $month, $closedate)
+        {
+            $otApprovedRecords = OtApproved::where('emp_id', $emp_id)
+                ->where('date', 'like', $month . '%')
+                ->where('date', '<=', $closedate)
+                ->get();
+            
+            $totalWorkDays = 0;
+            $totalWorkHours = 0;
+            
+            foreach ($otApprovedRecords as $record) {
+                $workHours = 0;
+                
+                if ($record->poya_work_days > 0) {
+                    $originalHours = $record->hours ?? 0;
+                    
+                    if ($originalHours > 8) {
+                        // If work hours > 8, count as a day
+                        $totalWorkDays += 1;
+
+                    } elseif ($originalHours >= 6 && $originalHours <= 8) {
+                        // If work hours between 6-8, convert to 10 hours
+                        $workHours = 10;
+                        $totalWorkHours += $workHours;
+                    } else {
+                        // Hours <= 6
+                        $workHours = $originalHours;
+                        $totalWorkHours += $workHours;
+                    }
+                }
+            }
+
+            return (object) [
+                'total_days' => $totalWorkDays,
+                'total_hours' => $totalWorkHours
+            ];
+        }
+    // public function get_mercantilework_days_monthly($emp_id, $month ,$closedate)
+    // {
+    //     $mercantilework_days = OtApproved::where('emp_id', $emp_id)
+    //                         ->where('date', 'like', $month.'%')
+    //                         ->where('date', '<=', $closedate)
+    //                         ->sum('mercantile_work_days');
+    //     return $mercantilework_days;
+    // }
+
+     public function get_mercantilework_days_monthly($emp_id, $month, $closedate)
+        {
+            $otApprovedRecords = OtApproved::where('emp_id', $emp_id)
+                ->where('date', 'like', $month . '%')
+                ->where('date', '<=', $closedate)
+                ->get();
+            
+            $totalWorkDays = 0;
+            $totalWorkHours = 0;
+            
+            foreach ($otApprovedRecords as $record) {
+                $workHours = 0;
+                
+                if ($record->mercantile_work_days > 0) {
+                    $originalHours = $record->hours ?? 0;
+                    
+                    if ($originalHours > 8) {
+                        // If work hours > 8, count as a day
+                        $totalWorkDays += 1;
+
+                    } elseif ($originalHours >= 6 && $originalHours <= 8) {
+                        // If work hours between 6-8, convert to 10 hours
+                        $workHours = 10;
+                        $totalWorkHours += $workHours;
+                    } else {
+                        // Hours <= 6
+                        $workHours = $originalHours;
+                        $totalWorkHours += $workHours;
+                    }
+                }
+            }
+
+            return (object) [
+                'total_days' => $totalWorkDays,
+                'total_hours' => $totalWorkHours
+            ];
+        }
 
 }

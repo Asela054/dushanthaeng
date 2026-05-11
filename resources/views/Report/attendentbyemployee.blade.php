@@ -183,18 +183,23 @@ $(document).ready(function () {
             </label>
             </div>
         </div>
-        <table class="table table-sm table-hover" id="attendance_report_table">
+        <div class="center-block fix-width scroll-inner" >
+        <table class="table table-striped table-bordered table-sm table-hover" id="attendance_report_table">
             <thead>
                 <tr>
                     <th>EMP ID</th>
                     <th>NAME</th>
                     <th>DEPARTMENT</th>
+                    <th>LOCATION</th>
                     <th>DATE</th>
                     <th>DATE TYPE</th>
                     <th>CHECK IN</th>
                     <th>CHECK OUT</th>
                     <th>WORK HOURS</th>
-                    <th>LOCATION</th>
+                    <th>DAY SALARY</th>
+                    <th>NORMAL OT HOURS</th>    
+                    <th>DOUBLE OT HOURS</th>    
+                    <th>LEAVE TYPE</th>
                 </tr>
             </thead>
             <tbody>
@@ -225,18 +230,24 @@ $(document).ready(function () {
                     html += `<td>${emp_data.emp_id}</td>`;
                     html += `<td>${emp_data.emp_name_with_initial} - ${emp_data.calling_name}</td>`;
                     html += `<td>${emp_data.dept_name}</td>`;
+                    html += `<td>${emp_data.location}</td>`;
                     html += `<td>${emp_data.date}</td>`;
                     html += `<td>${emp_data.day_type}</td>`;
                     html += `<td>${checkInTime}</td>`;
                     html += `<td>${checkOutTime}</td>`;
                     html += `<td>${emp_data.workhours}</td>`;
-                    html += `<td>${emp_data.location}</td>`;
+                    html += `<td>${emp_data.day_salary}</td>`;
+                    html += `<td>${emp_data.normal_ot_hours}</td>`;
+                    html += `<td>${emp_data.double_ot_hours}</td>`;
+                    html += `<td>${emp_data.leave_type}</td>`;
+                    
                     html += '</tr>';
                 });
             });
             html += `
             </tbody>
         </table>
+         </div>
         `;
 
             $('.response').html(html);
