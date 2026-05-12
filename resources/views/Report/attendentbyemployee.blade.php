@@ -43,7 +43,12 @@
 
 @section('script')
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- autoTable plugin for jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
+        // Make jsPDF available globally
+    window.jsPDF = window.jspdf.jsPDF;
 $(document).ready(function () {
 
         $('#report_menu_link').addClass('active');
@@ -197,8 +202,8 @@ $(document).ready(function () {
                     <th>CHECK OUT</th>
                     <th>WORK HOURS</th>
                     <th>DAY SALARY</th>
-                    <th>NORMAL OT HOURS</th>    
-                    <th>DOUBLE OT HOURS</th>    
+                    <th>OT HOURS</th>    
+                    <th>D.OT HOURS</th>    
                     <th>LEAVE TYPE</th>
                 </tr>
             </thead>
@@ -272,16 +277,12 @@ $(document).ready(function () {
                         title: 'Attendance Reports',
                         text: '<i class="fas fa-file-csv mr-2"></i> CSV',
                     },
-                    { 
-                        extend: 'pdf', 
-                        className: 'btn btn-danger btn-sm', 
-                        title: 'Attendance Reports', 
-                        text: '<i class="fas fa-file-pdf mr-2"></i> PDF',
-                        orientation: 'landscape', 
-                        pageSize: 'legal', 
-                        customize: function(doc) {
-                            doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
-                        }
+                    {
+                            text: '<i class="fas fa-file-pdf mr-2"></i> PDF',
+                            className: 'btn btn-danger btn-sm',
+                            action: function (e, dt, node, config) {
+                                generatePDF();
+                            }
                     },
                     {
                         extend: 'print',
@@ -301,6 +302,167 @@ $(document).ready(function () {
     });
 }
 });
+
+function generatePDF() {
+    // Get current filter values for PDF header
+    const fromDate = $('#from_date').val() || 'Not specified';
+    const toDate = $('#to_date').val() || 'Not specified';
+    const department = $('#department').val() || 'All';
+    const employee = $('#employee').val() || 'All';
+    const location = $('#location').val() || 'All';
+    const currentDate = new Date().toLocaleDateString();
+
+    // Get DataTable instance
+    const table = $('#attendance_report_table').DataTable();
+    const tableData = table.rows({ filter: 'applied' }).data();
+
+    // Initialize PDF in landscape mode
+    const doc = new jsPDF('l', 'mm', 'a4');
+
+    // Add report title
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Attendance Report', doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+
+    // Add filter information
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+
+    let yPos = 25;
+    doc.text(`Date Range: ${fromDate} to ${toDate}`, 15, yPos);
+    doc.text(`Generated on: ${currentDate}`, doc.internal.pageSize.getWidth() - 15, yPos, { align: 'right' });
+
+    yPos += 5;
+    doc.text(`Department: ${department}   |   Location: ${location}`, 15, yPos);
+
+    if (employee !== 'All') {
+        yPos += 5;
+        doc.text(`Employee: ${employee}`, 15, yPos);
+    }
+
+    // Add a line separator
+    yPos += 8;
+    doc.setLineWidth(0.3);
+    doc.line(15, yPos, doc.internal.pageSize.getWidth() - 15, yPos);
+    yPos += 5;
+
+    // Prepare table headers matching attendance_report_table
+    const headers = [[
+        'EMP ID', 'NAME', 'DEPARTMENT', 'LOCATION', 'DATE',
+        'DATE TYPE', 'CHECK IN', 'CHECK OUT', 'WORK HOURS',
+        'DAY SALARY', 'OT HRS', 'D.OT HRS', 'LEAVE TYPE'
+    ]];
+
+    const body = [];
+    let rowCount = 0;
+
+    // Check if there's data
+    if (!tableData || tableData.length === 0) {
+        doc.setFontSize(8);
+        doc.setTextColor(255, 0, 0);
+        doc.text('No data available for the selected filters', doc.internal.pageSize.getWidth() / 2, yPos + 20, { align: 'center' });
+        doc.save('Attendance_Report_No_Data.pdf');
+        return;
+    }
+
+    // Extract data from DOM rows (since attendance table is built from HTML, not JSON objects)
+    table.rows({ filter: 'applied' }).nodes().each(function(row) {
+        const cells = $(row).find('td');
+        const rowData = [];
+        cells.each(function() {
+            rowData.push($(this).text().trim());
+        });
+        body.push(rowData);
+
+        // Apply row background color based on attendance status
+        const style = $(row).attr('style') || '';
+        if (style.includes('rgb(247, 200, 200)')) {
+            // Incomplete - light red
+            body[body.length - 1]._rowStyle = [247, 200, 200];
+        } else if (style.includes('#ffeaea')) {
+            // Absent - very light red
+            body[body.length - 1]._rowStyle = [255, 234, 234];
+        }
+
+        rowCount++;
+    });
+
+    const margin = 5;
+
+    // Generate table using autoTable
+    doc.autoTable({
+        startY: yPos,
+        head: headers,
+        body: body,
+        theme: 'grid',
+        styles: {
+            fontSize: 5.5,
+            cellPadding: 2,
+            overflow: 'linebreak',
+            valign: 'middle'
+        },
+        headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            fontStyle: 'bold',
+            halign: 'center',
+            fontSize: 5,
+            cellPadding: 3
+        },
+        columnStyles: {
+            0:  { cellWidth: 14, halign: 'center' },  // EMP ID
+            1:  { cellWidth: 45, halign: 'left'   },  // NAME
+            2:  { cellWidth: 35, halign: 'left'   },  // DEPARTMENT
+            3:  { cellWidth: 20, halign: 'left'   },  // LOCATION
+            4:  { cellWidth: 18, halign: 'center' },  // DATE
+            5:  { cellWidth: 18, halign: 'center' },  // DATE TYPE
+            6:  { cellWidth: 18, halign: 'center' },  // CHECK IN
+            7:  { cellWidth: 18, halign: 'center' },  // CHECK OUT
+            8:  { cellWidth: 24, halign: 'center' },  // WORK HOURS
+            9:  { cellWidth: 18, halign: 'center' },  // DAY SALARY
+            10: { cellWidth: 18, halign: 'center' },  // NORMAL OT HRS
+            11: { cellWidth: 18, halign: 'center' },  // DOUBLE OT HRS
+            12: { cellWidth: 20, halign: 'left'   },  // LEAVE TYPE
+        },
+        bodyStyles: {
+            fontSize: 5.5
+        },
+        alternateRowStyles: {
+            fillColor: [245, 245, 245]
+        },
+        // Preserve row color coding for attendance status
+        didParseCell: function(data) {
+            if (data.section === 'body') {
+                const rowStyle = body[data.row.index]?._rowStyle;
+                if (rowStyle) {
+                    data.cell.styles.fillColor = rowStyle;
+                }
+            }
+        },
+        margin: { left: margin, right: margin },
+        pageBreak: 'auto',
+        tableWidth: 'auto',
+        showHead: 'everyPage',
+        willDrawPage: function(data) {
+            const companyName = $('#company_name').val() || 'Company Name';
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'normal');
+            doc.text(companyName, margin, 10);
+            doc.text(`Page ${data.pageNumber}`, doc.internal.pageSize.getWidth() - margin, 10, { align: 'right' });
+
+            if (data.pageNumber > 1) {
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Attendance Report (Continued)', doc.internal.pageSize.getWidth() / 2, 18, { align: 'center' });
+            }
+        }
+    });
+
+    // Save the PDF
+    const safeDept = department.replace(/[^a-zA-Z0-9]/g, '_') || 'Report';
+    const fileName = `Attendance_Report_${safeDept}_${currentDate.replace(/[^0-9]/g, '')}.pdf`;
+    doc.save(fileName);
+}
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
