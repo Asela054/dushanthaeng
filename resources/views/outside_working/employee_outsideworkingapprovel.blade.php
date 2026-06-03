@@ -247,7 +247,7 @@ $(document).ready(function () {
                                         <td>${item.day_count}</td>
                                         <td>${item.allowance_amount}</td>
                                         <td>${item.total_allowance}</td>
-                                        <td class="d-none">${item.emp_autoid}</td>
+                                        <td class="d-none">${item.emp_auto_id}</td>
                                     </tr>`;
                     });
                     $('#attendtable tbody').html(dataRows);
