@@ -483,7 +483,7 @@ class AttendanceApprovalController extends Controller
                 }
 
 	
-                // get holiday nopay days count
+                // get holiday nopay days count not us
                 foreach($dateRange as $todayDate){
 
                     $holiday_check = Holiday::where('date', $todayDate)
@@ -514,6 +514,8 @@ class AttendanceApprovalController extends Controller
                         }
                     }
                 }
+
+               
 
                 // IN Dushantha Eng they Prepare daily salary using Hour rate and Month salary  is prepared by day count
                 //Insert Work Rate Table
@@ -711,9 +713,9 @@ class AttendanceApprovalController extends Controller
                             'holiday_double_ot_hrs' => $holiday_double_ot_hours,
                             'sunday_work_days' => $sundaywork_days,
                             'poya_work_days' => $poyawork_days,
-                            'poya_nopay_days' => $totalpayanopay,
+                            'poya_nopay_days' => $poyawork_days,
                             'mercantile_work_days' => $mercantilework_days,
-                            'mercantile_nopay_days' => $totalmercantilenopay,
+                            'mercantile_nopay_days' => $mercantilework_days,
                             'sunday_double_ot_hrs' => $sundaydouble_ot_hours,
                             'poya_extended_normal_ot_hrs' => $poyaextended_normal_othours,
                             'absent_nopay' => $absent_no_pay_days,
