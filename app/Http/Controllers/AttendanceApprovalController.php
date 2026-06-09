@@ -379,7 +379,7 @@ class AttendanceApprovalController extends Controller
             $query->where(['departments.id' => $department]);
         }
 
-        $query->where('employees.emp_id', 9);
+        // $query->where('employees.emp_id', 9);
         $query->where('employees.deleted', 0);
         $query->where('employees.is_resigned', 0);
         
