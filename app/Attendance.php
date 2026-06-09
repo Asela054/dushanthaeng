@@ -519,9 +519,14 @@ class Attendance extends Model
 
                 $shift_start =  Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_start_);
                 $shift_end = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_end_);
-                if ($shift->id==2) {
-                    $shift_end->addDay();
-                }
+                // if ($shift->id==2) {
+                //     $shift_end->addDay();
+                // }
+                if ($emp->flex_ot == 1):
+                    if ($off_time->format('Y-m-d') > $on_time->format('Y-m-d')):
+                        $shift_end->addDay();
+                    endif;
+                endif;
                 
                 $s_date = $date->format('Y-m-d');
 
