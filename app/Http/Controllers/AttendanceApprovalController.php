@@ -335,7 +335,7 @@ class AttendanceApprovalController extends Controller
           if ($closedateObj->format('Y-m-d') >= $startDate->format('Y-m-d')) {
             $dateRange[] = $closedateObj->format('Y-m-d');
         }
-
+        
         $query = DB::query()
             ->select('at1.id as attendance_id',
                 'employees.id as emp_auto_id',
@@ -379,14 +379,14 @@ class AttendanceApprovalController extends Controller
             $query->where(['departments.id' => $department]);
         }
 
-        // $query->where('employees.emp_id', 9);
         $query->where('employees.deleted', 0);
         $query->where('employees.is_resigned', 0);
         
         $query->groupBy('employees.emp_id');
         $results = $query->get();
-
+        
         foreach ($results as $record) {
+
             $totalworkHours = 0;
             $totalweekworkshours = 0;
             $late_day_amount = 0;
@@ -484,38 +484,61 @@ class AttendanceApprovalController extends Controller
 
 	
                 // get holiday nopay days count not us
-                foreach($dateRange as $todayDate){
+                // foreach($dateRange as $todayDate){
 
-                    $holiday_check = Holiday::where('date', $todayDate)
-                    ->first();
-                    $dayOfWeek = Carbon::parse($todayDate)->dayOfWeek;
+                //     $holiday_check = Holiday::where('date', $todayDate)
+                //     ->first();
+                //     $dayOfWeek = Carbon::parse($todayDate)->dayOfWeek;
 
-                    if( !empty($holiday_check) && !($dayOfWeek == Carbon::SATURDAY || $dayOfWeek == Carbon::SUNDAY)){
+                //     if( !empty($holiday_check) && !($dayOfWeek == Carbon::SATURDAY || $dayOfWeek == Carbon::SUNDAY)){
 
-                                $query = DB::table('attendances as at1')
-                                ->select(
-                                    'at1.id',
-                                    'at1.emp_id',
-                                    'at1.timestamp',
-                                    'at1.date',
-                                    DB::raw('MIN(at1.timestamp) AS firsttimestamp'),
-                                    DB::raw('CASE WHEN MIN(at1.timestamp) = MAX(at1.timestamp) THEN NULL 
-                                            ELSE MAX(at1.timestamp) END AS lasttimestamp')
-                                )
-                                ->whereNull('at1.deleted_at')
-                                ->where('at1.emp_id', $record->emp_id)
-                                ->where('at1.date', 'LIKE', $todayDate . '%')
-                                ->havingRaw('MIN(at1.timestamp) != MAX(at1.timestamp)')
-                                ->get();
-                        if ($query->isNotEmpty()){
-                            $totalholidynopay += 1;
-                            if($holiday_check->holiday_type==1){$totalpayanopay +=1;}
-                            if($holiday_check->holiday_type==3){$totalmercantilenopay +=1;}
-                        }
+                //                 $query = DB::table('attendances as at1')
+                //                 ->select(
+                //                     'at1.id',
+                //                     'at1.emp_id',
+                //                     'at1.timestamp',
+                //                     'at1.date',
+                //                     DB::raw('MIN(at1.timestamp) AS firsttimestamp'),
+                //                     DB::raw('CASE WHEN MIN(at1.timestamp) = MAX(at1.timestamp) THEN NULL 
+                //                             ELSE MAX(at1.timestamp) END AS lasttimestamp')
+                //                 )
+                //                 ->whereNull('at1.deleted_at')
+                //                 ->where('at1.emp_id', $record->emp_id)
+                //                 ->where('at1.date', 'LIKE', $todayDate . '%')
+                //                 ->havingRaw('MIN(at1.timestamp) != MAX(at1.timestamp)')
+                //                 ->get();
+                //         if ($query->isNotEmpty()){
+                //             $totalholidynopay += 1;
+                //             if($holiday_check->holiday_type==1){$totalpayanopay +=1;}
+                //             if($holiday_check->holiday_type==3){$totalmercantilenopay +=1;}
+                //         }
+                //     }
+                // }
+
+                $holiday_check = Holiday::where('date', 'like', $month.'%')->get(); 
+
+                foreach($holiday_check as $rowholidaycheck){
+                    $query = DB::table('attendances as at1')
+                        ->select(
+                            'at1.id',
+                            'at1.emp_id',
+                            'at1.timestamp',
+                            'at1.date',
+                            DB::raw('MIN(at1.timestamp) AS firsttimestamp'),
+                            DB::raw('CASE WHEN MIN(at1.timestamp) = MAX(at1.timestamp) THEN NULL 
+                                    ELSE MAX(at1.timestamp) END AS lasttimestamp')
+                        )
+                        ->whereNull('at1.deleted_at')
+                        ->where('at1.emp_id', $record->emp_id)
+                        ->where('at1.date', $rowholidaycheck->date)
+                        ->havingRaw('MIN(at1.timestamp) != MAX(at1.timestamp)')
+                        ->get();
+                    if ($query->isNotEmpty()){
+                        $totalholidynopay += 1;
+                        if($rowholidaycheck->holiday_type==1){$totalpayanopay +=1;}
+                        if($rowholidaycheck->holiday_type==3){$totalmercantilenopay +=1;}
                     }
                 }
-
-               
 
                 // IN Dushantha Eng they Prepare daily salary using Hour rate and Month salary  is prepared by day count
                 //Insert Work Rate Table
@@ -660,6 +683,7 @@ class AttendanceApprovalController extends Controller
                                     'created_at' => date('Y-m-d H:i:s'),
                                     'updated_at' => date('Y-m-d H:i:s')
                                 );
+                        // dd($datasql);
 						employeeWorkRate::create($datasql);
 					}
 				}else{//Monthly Salary
