@@ -189,7 +189,7 @@ class OtApproved extends Model
                 $workHours = 0;
                 
                 if ($record->mercantile_work_days > 0) {
-                    $originalHours = $record->hours ?? 0;
+                    $originalHours = $record->holiday_normal_hours ?? 0;
                     
                     if ($originalHours > 8) {
                         // If work hours > 8, count as a day
