@@ -449,7 +449,7 @@ class AttendanceApprovalController extends Controller
                 $normal_ot_hours = $normal_ot_hours + $increaseot;
             }
 
-          // $mercantilenopay = $poyawork_days  + $mercantilework_days;
+          $mercantilenopay = $poyawork_days  + $mercantilework_days;
 
             if(!empty($record->date)){
 				$year_rec = Carbon::createFromFormat('Y-m-d H:i:s', $record->date)->year;
@@ -666,7 +666,7 @@ class AttendanceApprovalController extends Controller
                                     'normal_rate_otwork_hrs' => $normal_ot_hours,
                                     'double_rate_otwork_hrs' => $double_ot_hours,
                                     'triple_rate_otwork_hrs' => $triple_ot_hours,
-                                    'holiday_nopay_days' => $totalholidynopay,
+                                    'holiday_nopay_days' => $mercantilenopay,
                                     'holiday_normal_ot_hrs' => $holiday_ot_hours,
                                     'holiday_double_ot_hrs' => $holiday_double_ot_hours,
                                     'sunday_work_days' => $sundaywork_days,
@@ -732,7 +732,7 @@ class AttendanceApprovalController extends Controller
 							'normal_rate_otwork_hrs' => $normal_ot_hours,
 							'double_rate_otwork_hrs' => $double_ot_hours,
 							'triple_rate_otwork_hrs' => $triple_ot_hours,
-                            'holiday_nopay_days' => $totalholidynopay,
+                            'holiday_nopay_days' => $mercantilenopay,
                             'holiday_normal_ot_hrs' => $holiday_ot_hours,
                             'holiday_double_ot_hrs' => $holiday_double_ot_hours,
                             'sunday_work_days' => $sundaywork_days,
