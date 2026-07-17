@@ -135,7 +135,7 @@ class OtApproved extends Model
                 ->where('date', 'like', $month . '%')
                 ->where('date', '<=', $closedate)
                 ->get();
-            
+                
             $totalWorkDays = 0;
             $totalWorkHours = 0;
             
@@ -143,7 +143,7 @@ class OtApproved extends Model
                 $workHours = 0;
                 
                 if ($record->poya_work_days > 0) {
-                    $originalHours = $record->hours ?? 0;
+                    $originalHours = $record->holiday_normal_hours ?? 0;
                     
                     if ($originalHours > 8) {
                         // If work hours > 8, count as a day
@@ -189,7 +189,7 @@ class OtApproved extends Model
                 $workHours = 0;
                 
                 if ($record->mercantile_work_days > 0) {
-                    $originalHours = $record->hours ?? 0;
+                    $originalHours = $record->holiday_normal_hours ?? 0;
                     
                     if ($originalHours > 8) {
                         // If work hours > 8, count as a day

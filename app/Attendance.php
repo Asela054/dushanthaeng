@@ -360,7 +360,8 @@ class Attendance extends Model
         $record_date = Carbon::parse($record_date);
 
         $date_period = $off_time->diffInDays($on_time);
-
+        // $date_period = 0;
+        
         $total_ot_hours = 0;
         $total_ot_hours_double = 0;
         $total_ot_hours_one_point_five = 0;
@@ -477,7 +478,7 @@ class Attendance extends Model
         $sunafterdoublehours= $emp->sun_after_double ;//Sunday after double OT hours
         $weekafterdouble= $emp->week_after_double ;//Week day after double OT hours
         $roundotmin= $emp->ot_round_time ;//Rounded Min 
-
+        
         if($roundotmin>0){
             $roundInterval = 30;
             $minutes = (int)$off_time->format('i');
@@ -515,13 +516,20 @@ class Attendance extends Model
                 $is_one_point_five = false;
 
                 $date = $record_date;
-                $day = $date->dayOfWeek;            
+                $day = $date->dayOfWeek;   
 
                 $shift_start =  Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_start_);
                 $shift_end = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' '.$shift_end_);
-                if ($shift->id==2) {
-                    $shift_end->addDay();
-                }
+                $maxbeforontime = Carbon::parse($date->year.'-'.$date->month.'-'.$date->day.' 14:00');
+                // if ($shift->id==2) {
+                //     $shift_end->addDay();
+                // }
+                // dd($on_time, $off_time, $shift_end, $maxbeforontime);
+                if ($emp->flex_ot == 1):
+                    if ($off_time->format('Y-m-d') > $on_time->format('Y-m-d') && $maxbeforontime <= $on_time):
+                        $shift_end->addDay();
+                    endif;
+                endif;
                 
                 $s_date = $date->format('Y-m-d');
 
@@ -835,7 +843,7 @@ class Attendance extends Model
                             $mercantile_work_days=0;
                             $sunday_double_ot_hours=0;
                             $poya_extend_ot=0;
-
+                            
                             if($on_time < $shift_start && $morningotstatus == 1) { //Morning ot
                                 $ot_from = $on_time;
                                 $ot_to = $shift_start;
@@ -854,7 +862,7 @@ class Attendance extends Model
                                 else{
                                     $ot_from = $today_eight;
                                 }
-        
+                                
                                 $ot_minutes = $ot_from->diffInMinutes($ot_to);
                                 if($spedeductpresent>0){
                                     $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
@@ -880,7 +888,9 @@ class Attendance extends Model
         
                                 $next_date = $date->copy()->addDays(1);
                                 $next_date = $next_date->format('Y-m-d');
-                                $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start_);
+                                $shiftontime = Carbon::parse($shift->onduty_time);
+                                $shiftontime = $shiftontime->format('H:i');
+                                $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shiftontime);
         
                                 if($next_date_morning_shift_start < $off_time ){
                                     $ot_to = $next_date_morning_shift_start;
@@ -1198,18 +1208,21 @@ class Attendance extends Model
                             
                             if($off_time > $shift_end  && $totalworkinghours>=$afterothours){ //Evening ot
                                 $ot_from = $shift_end;
-        
+                                
                                 $next_date = $date->copy()->addDays(1);
                                 $next_date = $next_date->format('Y-m-d');
-                                $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start_);
-        
+                                $shiftontime = Carbon::parse($shift->onduty_time);
+                                $shiftontime = $shiftontime->format('H:i');
+                                $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shiftontime);
+                                
                                 if($next_date_morning_shift_start < $off_time ){
                                     $ot_to = $next_date_morning_shift_start;
                                 }else{
                                     $ot_to = $off_time;
                                 }
-        
+                                
                                 $ot_minutes = $ot_from->diffInMinutes($ot_to);
+                                
                                 if($spedeductpresent>0){
                                     $ot_minutes = $ot_minutes - ($ot_minutes % $spedeductpresent);
                                 }
@@ -1924,7 +1937,9 @@ class Attendance extends Model
             
                                     $next_date = $date->copy()->addDays(1);
                                     $next_date = $next_date->format('Y-m-d');
-                                    $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start_);
+                                    $shiftontime = Carbon::parse($shift->onduty_time);
+                                    $shiftontime = $shiftontime->format('H:i');
+                                    $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shiftontime);
             
                                     if($next_date_morning_shift_start < $off_time ){
                                         $ot_to = $next_date_morning_shift_start;
@@ -2249,7 +2264,9 @@ class Attendance extends Model
             
                                     $next_date = $date->copy()->addDays(1);
                                     $next_date = $next_date->format('Y-m-d');
-                                    $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shift_start_);
+                                    $shiftontime = Carbon::parse($shift->onduty_time);
+                                    $shiftontime = $shiftontime->format('H:i');
+                                    $next_date_morning_shift_start = Carbon::parse($next_date.' '.$shiftontime);
             
                                     if($next_date_morning_shift_start < $off_time ){
                                         $ot_to = $next_date_morning_shift_start;
