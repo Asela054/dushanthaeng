@@ -535,7 +535,7 @@ class Attendance extends Model
 
                 $holiday_check = Holiday::where('date', $s_date)
                 ->first();
-
+                
                 if(!empty($holiday_check)){//Calender mark holiday
                     $is_holiday = true;
                     $is_double = true;
@@ -581,7 +581,6 @@ class Attendance extends Model
                     }
 
                     
-
                     if($holiday_check->work_level==1){
                         if($holiday_check->holiday_type==1){
                             if($ot_minutes >= $otminimumminits){
@@ -601,6 +600,26 @@ class Attendance extends Model
                                 $total_ot_hours += $holidayot+$poya_extend_ot;
                                 // $poya_work_days += 1;
                                 $poya_work_days += round(min($holidayot / $shifthours, 1), 2);
+                            }
+                        }
+                        else if($holiday_check->holiday_type==3){
+                            if($ot_minutes >= $otminimumminits){
+                                $ot_hours = round($ot_minutes / 60, 2);
+                                $holidayot = $ot_hours;
+                                if($ot_hours>$shifthours){
+                                    $ot_hours = $ot_hours- $shifthours;
+                                    // $ot_hours = 0;
+                                    $holidayot =$shifthours;
+                                }
+                                else{
+                                    $holidayot =$ot_hours;
+                                    $ot_hours = 0;
+                                }
+    
+                                
+                                $total_ot_hours += $holidayot+$ot_hours;
+                                // $poya_work_days += 1;
+                                $mercantile_work_days += round(min($holidayot / $shifthours, 1), 2);
                             }
                         }
                         else{
@@ -1650,6 +1669,25 @@ class Attendance extends Model
                                     $total_ot_hours += $holidayot+$poya_extend_ot;
                                     // $poya_work_days += 1;
                                     $poya_work_days += round(min($holidayot / $shifthours, 1), 2);
+                                }
+                            }
+                            else if($holiday_check->holiday_type==3){
+                                if($ot_minutes >= $otminimumminits){
+                                    $ot_hours = round($ot_minutes / 60, 2);
+                                    $holidayot = $ot_hours;
+                                    if($ot_hours>$shifthours){
+                                        $ot_hours = $ot_hours- $shifthours;
+                                        $holidayot =$shifthours;
+                                    }
+                                    else{
+                                        $holidayot =$ot_hours;
+                                        $ot_hours = 0;
+                                    }
+        
+                                    
+                                    $total_ot_hours += $holidayot+$ot_hours;
+                                    // $poya_work_days += 1;
+                                    $mercantile_work_days += round(min($holidayot / $shifthours, 1), 2);
                                 }
                             }
                             else{
