@@ -374,7 +374,6 @@ class RptAttendanceController extends Controller
             return response()->json(['html' => '']);
         }
 
-
         foreach ($departments as $department_) {
             $atte_arr = [];
 
@@ -406,7 +405,6 @@ class RptAttendanceController extends Controller
                 }
 
                 $employees = $query->get();
-
            
 
             foreach ($employees as $record) {
@@ -415,12 +413,22 @@ class RptAttendanceController extends Controller
                  $payrollProfile = DB::table('payroll_profiles')
                                     ->where('emp_id', $record->id)
                                     ->first();
-
-
+             
                 foreach ($period as $date) {
                     $f_date = $date->format('Y-m-d');
                     $dayOfWeek = $date->dayOfWeek;
                     $day_type = $date->format('l');
+
+                    $workhours = '-';
+                    $rec_date = null;
+                    $first_time_stamp = '-';
+                    $last_time_stamp = '-';
+                    $leave_type_name = '-';
+                    $day_salary = 0;
+                    $normal_ot = 0;
+                    $double_ot = 0;
+
+
 
                     if (isset($holidays[$f_date])) {
                         $day_type = 'Holiday';
@@ -438,6 +446,7 @@ class RptAttendanceController extends Controller
 
                     $attendances = DB::select($sql);
 
+                    
                         // Get OT approved data for this date
                         $otApproved = DB::table('ot_approved')
                             ->where('emp_id', $record->emp_id)
@@ -456,6 +465,7 @@ class RptAttendanceController extends Controller
                         }
                     
                     if (!empty($attendances)) {
+
                         $to = \Carbon\Carbon::parse($attendances[0]->lasttimestamp);
                         $from = \Carbon\Carbon::parse($attendances[0]->timestamp);
 
@@ -533,7 +543,7 @@ class RptAttendanceController extends Controller
 
                         array_push($atte_arr, $objattendance);
                         $not_att_count++;
-                    }
+                }
             }
 
             $obj = new stdClass();
