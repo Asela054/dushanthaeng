@@ -382,33 +382,33 @@ class LeaveController extends Controller
             $leaveBalanceData = [];
             $balanceErrors = [];
 
-            if ($request->has('leave_balance_data')) {
-                $leaveBalanceData = json_decode($request->leave_balance_data, true);
+            // if ($request->has('leave_balance_data')) {
+            //         $leaveBalanceData = json_decode($request->leave_balance_data, true);
+                    
+            //         // Validate if the applied leave doesn't exceed available balance
                 
-                // Validate if the applied leave doesn't exceed available balance
-             
 
-                    foreach ($leaveBalanceData as $balance) {
-                        if ($balance['leave_type'] === 'Annual' && $request->leavetype == 1) {
-                            $availableAnnual = (float) $balance['available'];
-                            if ($diff_days > $availableAnnual) {
-                                $balanceErrors[] = "Applied annual leave days ($diff_days) exceed available balance ($availableAnnual days)";
-                            }
-                        }
-                        
-                        if ($balance['leave_type'] === 'Casual' && $request->leavetype == 2) {
-                            $availableCasual = (float) $balance['available'];
-                            if ($diff_days > $availableCasual) {
-                                $balanceErrors[] = "Applied casual leave days ($diff_days) exceed available balance ($availableCasual days)";
-                            }
-                        }
-                
-           } 
-        }
+            //             foreach ($leaveBalanceData as $balance) {
+            //                 if ($balance['leave_type'] === 'Annual' && $request->leavetype == 1) {
+            //                     $availableAnnual = (float) $balance['available'];
+            //                     if ($diff_days > $availableAnnual) {
+            //                         $balanceErrors[] = "Applied annual leave days ($diff_days) exceed available balance ($availableAnnual days)";
+            //                     }
+            //                 }
+                            
+            //                 if ($balance['leave_type'] === 'Casual' && $request->leavetype == 2) {
+            //                     $availableCasual = (float) $balance['available'];
+            //                     if ($diff_days > $availableCasual) {
+            //                         $balanceErrors[] = "Applied casual leave days ($diff_days) exceed available balance ($availableCasual days)";
+            //                     }
+            //                 }
+                    
+            //     } 
+            // }
 
-            if (!empty($balanceErrors)) {
-                    return response()->json(['errors' => $balanceErrors]);
-                }
+            // if (!empty($balanceErrors)) {
+            //         return response()->json(['errors' => $balanceErrors]);
+            // }
 
         $leave = new Leave;
         $leave->emp_id = $request->input('employee');

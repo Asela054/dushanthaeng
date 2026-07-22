@@ -74,6 +74,7 @@
                                 <div class="form-group mb-1">
                                     <label class="small font-weight-bolder text-dark">Holiday Type</label>
                                     <select name="type" class="form-control form-control-sm">
+                                         <option >Select Holiday Type</option>
                                         <option value="1">Poya Holiday</option>
                                         <option value="2">Public & Bank Holiday</option>
                                         <option value="3">Public,Bank,Mercantile Holiday</option>
