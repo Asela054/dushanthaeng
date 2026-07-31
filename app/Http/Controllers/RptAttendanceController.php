@@ -348,6 +348,10 @@ class RptAttendanceController extends Controller
         $holidays = DB::table('holidays')->whereBetween('date', [$from_date, $to_date])->get()->keyBy('date'); 
 
         
+         $month = Carbon::parse($to_date)->format('Y-m');
+         $closingday = Carbon::parse($to_date)->endOfMonth()->day;
+
+
 
         $dept_sql = "SELECT * FROM departments WHERE 1 = 1 ";
         if ($department != '') {
@@ -458,7 +462,10 @@ class RptAttendanceController extends Controller
                         $day_salary = 0;
                         $normal_ot = 0;
                         $double_ot = 0;
-                        
+                        $ot_amount = 0;
+                        $doubleot_amount = 0;
+                        $normal_ot_total = 0;
+                        $doubl_ot_total = 0;
                         // Calculate day salary
                         if ($payrollProfile && $payrollProfile->day_salary) {
                             $day_salary = $payrollProfile->day_salary;
@@ -491,6 +498,11 @@ class RptAttendanceController extends Controller
                 
                         if ($otApproved) {
 
+
+                        $work_days = (new \App\Attendance)->get_work_days($record->emp_id, $month, $closingday);
+                        $leave_days = (new \App\Leave)->get_leave_days($record->emp_id, $month, $closingday);
+                        $no_pay_days = (new \App\Leave)->get_no_pay_days($record->emp_id, $month, $closingday);
+
                             $normal_ot = ($otApproved->hours ?? 0) + 
                                     ($otApproved->holiday_normal_hours ?? 0) +
                                     ($otApproved->poya_extended_normal_ot_hrs ?? 0);
@@ -498,6 +510,13 @@ class RptAttendanceController extends Controller
                             $double_ot = ($otApproved->double_hours ?? 0) + 
                                         ($otApproved->holiday_double_hours ?? 0) +
                                         ($otApproved->sunday_double_ot_hrs ?? 0);
+
+                        $otinfo = (new \App\Employeelateattenadnaceminites)->NopayAmountCal($record->id, $work_days,$leave_days,$no_pay_days,$normal_ot, $double_ot);     
+                         $ot_amount = $otinfo['othrs1_base_rate'];
+                         $doubleot_amount = $otinfo['othrs2_base_rate'];
+
+                         $normal_ot_total = $normal_ot * $ot_amount;
+                         $doubl_ot_total = $double_ot * $doubleot_amount;
                         }
                         
                     }else{
@@ -539,6 +558,10 @@ class RptAttendanceController extends Controller
                         $objattendance->day_salary = $day_salary;
                         $objattendance->normal_ot_hours = $normal_ot;
                         $objattendance->double_ot_hours = $double_ot;
+                        $objattendance->normal_ot_amount = $ot_amount;
+                        $objattendance->double_ot_amount = $doubleot_amount;
+                        $objattendance->normal_ot_total = $normal_ot_total;
+                        $objattendance->double_ot_total = $doubl_ot_total;
                         $objattendance->leave_type = $leave_type_name ??  '-';
 
                         array_push($atte_arr, $objattendance);
