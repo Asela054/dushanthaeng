@@ -202,8 +202,12 @@ $(document).ready(function () {
                     <th>CHECK OUT</th>
                     <th>WORK HOURS</th>
                     <th>DAY SALARY</th>
-                    <th>OT HOURS</th>    
+                    <th>OT HOURS</th>   
+                    <th>OT RATE</th>    
+                    <th>OT AMOUNT</th>   
                     <th>D.OT HOURS</th>    
+                    <th>D.OT RATE</th>    
+                    <th>D.OT AMOUNT</th>
                     <th>LEAVE TYPE</th>
                 </tr>
             </thead>
@@ -243,7 +247,11 @@ $(document).ready(function () {
                     html += `<td>${emp_data.workhours}</td>`;
                     html += `<td>${emp_data.day_salary}</td>`;
                     html += `<td>${emp_data.normal_ot_hours}</td>`;
+                    html += `<td>${emp_data.normal_ot_amount}</td>`;
+                    html += `<td>${emp_data.normal_ot_total}</td>`;
                     html += `<td>${emp_data.double_ot_hours}</td>`;
+                    html += `<td>${emp_data.double_ot_amount}</td>`;
+                    html += `<td>${emp_data.double_ot_total}</td>`;
                     html += `<td>${emp_data.leave_type}</td>`;
                     
                     html += '</tr>';
@@ -350,7 +358,8 @@ function generatePDF() {
     const headers = [[
         'EMP ID', 'NAME', 'DEPARTMENT', 'LOCATION', 'DATE',
         'DATE TYPE', 'CHECK IN', 'CHECK OUT', 'WORK HOURS',
-        'DAY SALARY', 'OT HRS', 'D.OT HRS', 'LEAVE TYPE'
+        'DAY SALARY', 'OT HRS', 'OT RATE', 'OT AMOUNT',
+        'D.OT HRS', 'D.OT RATE', 'D.OT AMOUNT', 'LEAVE TYPE'
     ]];
 
     const body = [];
@@ -409,20 +418,24 @@ function generatePDF() {
             fontSize: 5,
             cellPadding: 3
         },
-        columnStyles: {
+       columnStyles: {
             0:  { cellWidth: 14, halign: 'center' },  // EMP ID
-            1:  { cellWidth: 45, halign: 'left'   },  // NAME
-            2:  { cellWidth: 35, halign: 'left'   },  // DEPARTMENT
-            3:  { cellWidth: 20, halign: 'left'   },  // LOCATION
-            4:  { cellWidth: 18, halign: 'center' },  // DATE
-            5:  { cellWidth: 18, halign: 'center' },  // DATE TYPE
-            6:  { cellWidth: 18, halign: 'center' },  // CHECK IN
-            7:  { cellWidth: 18, halign: 'center' },  // CHECK OUT
-            8:  { cellWidth: 24, halign: 'center' },  // WORK HOURS
-            9:  { cellWidth: 18, halign: 'center' },  // DAY SALARY
-            10: { cellWidth: 18, halign: 'center' },  // NORMAL OT HRS
-            11: { cellWidth: 18, halign: 'center' },  // DOUBLE OT HRS
-            12: { cellWidth: 20, halign: 'left'   },  // LEAVE TYPE
+            1:  { cellWidth: 40, halign: 'left'   },  // NAME
+            2:  { cellWidth: 28, halign: 'left'   },  // DEPARTMENT
+            3:  { cellWidth: 16, halign: 'left'   },  // LOCATION
+            4:  { cellWidth: 16, halign: 'center' },  // DATE
+            5:  { cellWidth: 16, halign: 'center' },  // DATE TYPE
+            6:  { cellWidth: 15, halign: 'center' },  // CHECK IN
+            7:  { cellWidth: 15, halign: 'center' },  // CHECK OUT
+            8:  { cellWidth: 16, halign: 'center' },  // WORK HOURS
+            9:  { cellWidth: 15, halign: 'center' },  // DAY SALARY
+            10: { cellWidth: 13, halign: 'center' },  // OT HRS
+            11: { cellWidth: 13, halign: 'center' },  // OT RATE
+            12: { cellWidth: 15, halign: 'center' },  // OT AMOUNT
+            13: { cellWidth: 13, halign: 'center' },  // D.OT HRS
+            14: { cellWidth: 13, halign: 'center' },  // D.OT RATE
+            15: { cellWidth: 15, halign: 'center' },  // D.OT AMOUNT
+            16: { cellWidth: 17, halign: 'left'   },  // LEAVE TYPE
         },
         bodyStyles: {
             fontSize: 5.5

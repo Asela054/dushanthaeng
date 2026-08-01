@@ -207,7 +207,7 @@ class RptOTController extends Controller
 
     }
 
-    public function ot_report_list_month(Request $request)
+      public function ot_report_list_month(Request $request)
     {
         $permission = Auth::user()->can('ot-report');
         if(!$permission){
@@ -232,39 +232,37 @@ class RptOTController extends Controller
             return response()->json(['html' => '']);
         }
 
-        $emp_query = 'SELECT  
-                employees.*,  
-                employees.id as emp_auto_id, 
-                shift_types.onduty_time, 
-                shift_types.offduty_time,
-                shift_types.shift_name,
-                branches.location as b_location,
-                departments.name as dept_name 
-                FROM `employees`   
-                left join shift_types ON employees.emp_shift = shift_types.id 
-                left join branches ON employees.emp_location = branches.id 
-                left join departments ON employees.emp_department = departments.id 
-                WHERE employees.deleted = 0  
-                ';
+        $query = DB::table('employees')
+                    ->select(
+                        'employees.*',
+                        'employees.id as emp_auto_id',
+                        'shift_types.onduty_time',
+                        'shift_types.offduty_time',
+                        'shift_types.shift_name',
+                        'branches.location as b_location',
+                        'departments.name as dept_name'
+                    )
+                    ->leftJoin('shift_types', 'employees.emp_shift', '=', 'shift_types.id')
+                    ->leftJoin('branches', 'employees.emp_location', '=', 'branches.id')
+                    ->leftJoin('departments', 'employees.emp_department', '=', 'departments.id')
+                    ->where('employees.deleted', 0);
 
-        if (!empty($accessibleEmployeeIds)) {
-            $ids = implode('","', $accessibleEmployeeIds);
-            $emp_query .= 'AND employees.emp_id IN ("' . $ids . '") ';
-        }
+                if (!empty($accessibleEmployeeIds)) {
+                    $query->whereIn('employees.emp_id', $accessibleEmployeeIds);
+                }
 
-        if($department != ''){
-            $emp_query .= ' AND employees.emp_department = '.$department;
-        }
+                if ($department != '') {
+                    $query->where('employees.emp_department', $department);
+                }
 
-        if($employee != ''){
-            $emp_query .= ' AND employees.emp_id = '.$employee;
-        }
+                if ($employee != '') {
+                    $query->where('employees.emp_id', $employee);
+                }
+                if ($location != '') {
+                    $query->where('employees.emp_location', $location);
+                }
 
-        if($location != ''){
-            $emp_query .= ' AND employees.emp_location = '.$location;
-        }
-
-        $data = DB::select($emp_query);
+                $data = $query->orderBy('employees.emp_id')->get();
 
         return Datatables::of($data)
             ->addIndexColumn()
@@ -285,9 +283,40 @@ class RptOTController extends Controller
             })
             ->addColumn('normal_rate_otwork_hrs', function ($row) use ($month) {
                 $ot_hours = (new \App\Attendance)->get_ot_hours_approved($row->emp_id, $month);
+                
                 $normal_ot_hours = $ot_hours['normal_rate_otwork_hrs'];
 
                 return number_format($normal_ot_hours, 2);
+            })
+            ->addColumn('normal_rate_otwork_hrsrate', function ($row) use ($month, $closingday) {
+                $work_days = (new \App\Attendance)->get_work_days($row->emp_id, $month, $closingday);
+                $leave_days = (new \App\Leave)->get_leave_days($row->emp_id, $month, $closingday);
+                $no_pay_days = (new \App\Leave)->get_no_pay_days($row->emp_id, $month, $closingday);
+                $ot_hours = (new \App\Attendance)->get_ot_hours_approved($row->emp_id, $month);
+                $normal_ot_hours = $ot_hours['normal_rate_otwork_hrs'];
+                $double_ot_hours = $ot_hours['double_rate_otwork_hrs'];
+
+                $otinfo = (new \App\Employeelateattenadnaceminites)->NopayAmountCal($row->emp_auto_id, $work_days,$leave_days,$no_pay_days,$normal_ot_hours, $double_ot_hours);
+
+                $ot_amount = $otinfo['othrs1_base_rate'];
+                $normalottotal = $ot_amount * $normal_ot_hours;
+
+                return number_format($ot_amount, 2);
+            })
+            ->addColumn('normal_rate_otwork_amount', function ($row) use ($month, $closingday) {
+                $work_days = (new \App\Attendance)->get_work_days($row->emp_id, $month, $closingday);
+                $leave_days = (new \App\Leave)->get_leave_days($row->emp_id, $month, $closingday);
+                $no_pay_days = (new \App\Leave)->get_no_pay_days($row->emp_id, $month, $closingday);
+                $ot_hours = (new \App\Attendance)->get_ot_hours_approved($row->emp_id, $month);
+                $normal_ot_hours = $ot_hours['normal_rate_otwork_hrs'];
+                $double_ot_hours = $ot_hours['double_rate_otwork_hrs'];
+
+                $otinfo = (new \App\Employeelateattenadnaceminites)->NopayAmountCal($row->emp_auto_id, $work_days,$leave_days,$no_pay_days,$normal_ot_hours, $double_ot_hours);
+
+                $ot_amount = $otinfo['othrs1_base_rate'];
+                $normalottotal = $ot_amount * $normal_ot_hours;
+
+                return number_format($normalottotal, 2);
             })
             ->addColumn('double_rate_otwork_hrs', function ($row) use ($month) {
 
@@ -295,6 +324,54 @@ class RptOTController extends Controller
                 $double_ot_hours = $ot_hours['double_rate_otwork_hrs'];
 
                 return number_format($double_ot_hours, 2);
+            })
+             ->addColumn('double_rate_otwork_hrsrate', function ($row) use ($month, $closingday) {
+                $work_days = (new \App\Attendance)->get_work_days($row->emp_id, $month, $closingday);
+                $leave_days = (new \App\Leave)->get_leave_days($row->emp_id, $month, $closingday);
+                $no_pay_days = (new \App\Leave)->get_no_pay_days($row->emp_id, $month, $closingday);
+                $ot_hours = (new \App\Attendance)->get_ot_hours_approved($row->emp_id, $month);
+                $normal_ot_hours = $ot_hours['normal_rate_otwork_hrs'];
+                $double_ot_hours = $ot_hours['double_rate_otwork_hrs'];
+
+                $otinfo = (new \App\Employeelateattenadnaceminites)->NopayAmountCal($row->emp_auto_id, $work_days,$leave_days,$no_pay_days,$normal_ot_hours, $double_ot_hours);
+
+                $doubleot_amount = $otinfo['othrs2_base_rate'];
+                //$doubleottotal = $doubleot_amount * $normal_ot_hours;
+
+                return number_format($doubleot_amount, 2);
+            })
+            ->addColumn('double_rate_otwork_amount', function ($row) use ($month, $closingday) {
+                $work_days = (new \App\Attendance)->get_work_days($row->emp_id, $month, $closingday);
+                $leave_days = (new \App\Leave)->get_leave_days($row->emp_id, $month, $closingday);
+                $no_pay_days = (new \App\Leave)->get_no_pay_days($row->emp_id, $month, $closingday);
+                $ot_hours = (new \App\Attendance)->get_ot_hours_approved($row->emp_id, $month);
+                $normal_ot_hours = $ot_hours['normal_rate_otwork_hrs'];
+                $double_ot_hours = $ot_hours['double_rate_otwork_hrs'];
+
+                $otinfo = (new \App\Employeelateattenadnaceminites)->NopayAmountCal($row->emp_auto_id, $work_days,$leave_days,$no_pay_days,$normal_ot_hours, $double_ot_hours);
+
+                $doubleot_amount = $otinfo['othrs2_base_rate'];
+                $doubleottotal = $doubleot_amount * $double_ot_hours;
+
+                return number_format($doubleottotal, 2);
+            })
+            ->addColumn('otwork_amount_total', function ($row) use ($month, $closingday) {
+                $work_days = (new \App\Attendance)->get_work_days($row->emp_id, $month, $closingday);
+                $leave_days = (new \App\Leave)->get_leave_days($row->emp_id, $month, $closingday);
+                $no_pay_days = (new \App\Leave)->get_no_pay_days($row->emp_id, $month, $closingday);
+                $ot_hours = (new \App\Attendance)->get_ot_hours_approved($row->emp_id, $month);
+                $normal_ot_hours = $ot_hours['normal_rate_otwork_hrs'];
+                $double_ot_hours = $ot_hours['double_rate_otwork_hrs'];
+
+                $otinfo = (new \App\Employeelateattenadnaceminites)->NopayAmountCal($row->emp_auto_id, $work_days,$leave_days,$no_pay_days,$normal_ot_hours, $double_ot_hours);
+
+                $ot_amount = $otinfo['othrs1_base_rate'];
+                $normalottotal = $ot_amount * $normal_ot_hours;
+
+                $doubleot_amount = $otinfo['othrs2_base_rate'];
+                $doubleottotal = $doubleot_amount * $double_ot_hours;
+
+                return number_format($doubleottotal+$normalottotal, 2);
             })
              ->addColumn('employee_display', function ($row) {
                    return EmployeeHelper::getDisplayName($row);
@@ -318,4 +395,5 @@ class RptOTController extends Controller
             ])
             ->make(true);
     }
+
 }
