@@ -39,9 +39,7 @@
                                     <th>SATURDAY ONDUTY TIME</th>
                                     <th>SATURDAY OFFDUTY TIME</th>                                               
                                     <th>BEGINING CHECKIN</th>                                                
-                                    <th>BEGINING CHECKOUT</th>                                                
-                                    <th>ENDING CHECKIN</th>                                                
-                                    <th>ENDING CHECKOUT</th>                                                
+                                    <th>BEGINING CHECKOUT</th>                                                                                       
                                     <th class="text-right">ACTION</th>                                      
                                 </tr>
                             </thead>                          
@@ -72,51 +70,55 @@
                                 {{ csrf_field() }}	
                                 <div class="form-row mb-1">
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Shift Name</label>
+                                        <label class="small font-weight-bold text-dark">Shift Name*</label>
                                         <input type="text" name="shiftname" id="shiftname" class="form-control form-control-sm"  required/>
-                                    </div>                                  
+                                    </div>   
+                                    <div class="col">
+                                        <label class="small font-weight-bold text-dark">Shift Code*</label>
+                                        <input type="text" name="shiftcode" id="shiftcode" class="form-control form-control-sm" required/>
+                                    </div>
                                 </div>
                                 <div class="form-row mb-1">
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">On Duty time</label>
+                                        <label class="small font-weight-bold text-dark">On Duty time*</label>
                                         <input type="time" name="ondutytime" id="ondutytime" class="form-control form-control-sm"  required/>
                                     </div>
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Off Duty time</label>
+                                        <label class="small font-weight-bold text-dark">Off Duty time*</label>
                                         <input type="time" name="offdutytime" id="offdutytime" class="form-control form-control-sm" required/>
                                     </div>                                    
                                 </div>
                                 <div class="form-row mb-1">
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Saturday On Duty time</label>
+                                        <label class="small font-weight-bold text-dark">Saturday On Duty time*</label>
                                         <input type="time" name="saturday_ondutytime" id="saturday_ondutytime" class="form-control form-control-sm"  required/>
                                     </div>
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Saturday Off Duty time</label>
+                                        <label class="small font-weight-bold text-dark">Saturday Off Duty time*</label>
                                         <input type="time" name="saturday_offdutytime" id="saturday_offdutytime" class="form-control form-control-sm" required/>
                                     </div>                                    
                                 </div>
                                 <div class="form-row mb-1">
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Late Grace Time</label>
+                                        <label class="small font-weight-bold text-dark">Late Grace Time*</label>
                                         <input type="time" name="latetime" id="latetime" class="form-control form-control-sm" required/>
                                     </div>
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Leave Early Time</label>
+                                        <label class="small font-weight-bold text-dark">Leave Early Time*</label>
                                         <input type="time" name="leaveearlytime" id="leaveearlytime" class="form-control form-control-sm" required/>
                                     </div>                                    
                                 </div>
                                 <div class="form-row mb-1">
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Begining Checkin</label>
+                                        <label class="small font-weight-bold text-dark">Begining Checkin*</label>
                                         <input type="time" name="beginingcheckin" id="beginingcheckin" class="form-control form-control-sm" required/>
                                     </div>
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Begining Checkout</label>
+                                        <label class="small font-weight-bold text-dark">Begining Checkout*</label>
                                         <input type="time" name="beginingcheckout" id="beginingcheckout" class="form-control form-control-sm" required/>
                                     </div>                                    
                                 </div>
-                                <div class="form-row mb-1">
+                                {{-- <div class="form-row mb-1">
                                     <div class="col">
                                         <label class="small font-weight-bold text-dark">Ending Checkin</label>
                                         <input type="time" name="endingcheckin" id="endingcheckin" class="form-control form-control-sm" required/>
@@ -125,16 +127,42 @@
                                         <label class="small font-weight-bold text-dark">Ending Checkout</label>
                                         <input type="time" name="endingcheckout" id="endingcheckout" class="form-control form-control-sm" required/>
                                     </div>                                    
+                                </div> --}}
+                                <div class="form-row mb-1">
+                                    <div class="col">
+                                        <label class="small font-weight-bold text-dark">Workdays Count*</label>
+                                        <input type="number" step="0.01" name="workdayscount" id="workdayscount" class="form-control form-control-sm" required/>
+                                    </div>
+                                    <div class="col">
+                                        <label class="small font-weight-bold text-dark">Minute Count*</label>
+                                        <input type="number" step="0.01" name="minutecount" id="minutecount" class="form-control form-control-sm" required/>
+                                    </div>                                    
                                 </div>
                                 <div class="form-row mb-1">
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Workdays Count</label>
-                                        <input type="text" name="workdayscount" id="workdayscount" class="form-control form-control-sm" required/>
+                                        <label class="small font-weight-bold text-dark">Weekly Maximum Normal OT</label>
+                                        <input type="number" step="0.01" name="max_normal_ot_hrs" id="max_normal_ot_hrs" class="form-control form-control-sm" />
                                     </div>
                                     <div class="col">
-                                        <label class="small font-weight-bold text-dark">Minute Count</label>
-                                        <input type="text" name="minutecount" id="minutecount" class="form-control form-control-sm" required/>
+                                        <label class="small font-weight-bold text-dark">Weekly Maximum Double OT</label>
+                                        <input type="number" step="0.01" name="max_double_ot_hrs" id="max_double_ot_hrs" class="form-control form-control-sm" />
                                     </div>                                    
+                                </div>
+                                <div class="form-row mb-1">
+                                    <div class="col">
+                                        <label class="small font-weight-bold text-dark">Weekend Maximum Normal OT</label>
+                                        <input type="number" step="0.01" name="weekend_max_normal_ot_hrs" id="weekend_max_normal_ot_hrs" class="form-control form-control-sm" />
+                                    </div>
+                                    <div class="col">
+                                        <label class="small font-weight-bold text-dark">Weekend Maximum Double OT</label>
+                                        <input type="number" step="0.01" name="weekend_max_double_ot_hrs" id="weekend_max_double_ot_hrs" class="form-control form-control-sm" />
+                                    </div>                                    
+                                </div>
+                                <div class="form-row mb-1">
+                                    <div class="col">
+                                        <label class="small font-weight-bold text-dark">Shift End Time</label>
+                                        <input type="time" name="shift_end_time" id="shift_end_time" class="form-control form-control-sm"/>
+                                    </div>                                
                                 </div>
                                 <div class="form-row mb-1">
                                     <div class="col">
@@ -167,7 +195,7 @@
                                         <br>
                                         <div class="form-check-inline">
                                             <label class="form-check-label">
-                                                <input type="radio" class="form-check-input offduty_day" name="offduty_day" id="offduty_day_1" value="1" >Today
+                                                <input type="radio" class="form-check-input offduty_day" name="offduty_day" id="offduty_day_1" value="1" checked>Today
                                             </label>
                                         </div>
                                         <div class="form-check-inline">
@@ -176,12 +204,44 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="col">
+                                    {{-- <div class="col">
                                         <label class="small font-weight-bold text-dark">Color</label>
                                         <input type="color" name="color" id="color" class="form-control form-control-sm" required/>
-                                    </div>    
+                                    </div>     --}}
                                 </div>
+
                                 <div class="form-row mb-1">
+                                    <div class="col">
+                                        <label class="small font-weight-bold text-dark">Off Next Day</label>
+                                        <br>
+                                        <div class="form-check-inline">
+                                            <label class="form-check-label">
+                                                <input type="radio" class="form-check-input off_next_day" name="off_next_day" id="off_next_day_0" value="0" checked>No
+                                            </label>
+                                        </div>
+                                        <div class="form-check-inline">
+                                            <label class="form-check-label">
+                                                <input type="radio" class="form-check-input off_next_day" name="off_next_day" id="off_next_day_1" value="1" >Yes
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="small font-weight-bold text-dark">On Next Day</label>
+                                        <br>
+                                        <div class="form-check-inline">
+                                            <label class="form-check-label">
+                                                <input type="radio" class="form-check-input on_next_day" name="on_next_day" id="on_next_day_0" value="0" checked>No
+                                            </label>
+                                        </div>
+                                        <div class="form-check-inline">
+                                            <label class="form-check-label">
+                                                <input type="radio" class="form-check-input on_next_day" name="on_next_day" id="on_next_day_1" value="1" >Yes
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- <div class="form-row mb-1">
                                     <div class="col">
                                         <div class="custom-control custom-checkbox">
                                           <input type="checkbox" class="custom-control-input" id="mustcheckin" name="mustcheckin">
@@ -192,7 +252,7 @@
                                           <label class="custom-control-label" for="mustcheckout">Must CheckOut</label>
                                         </div>
                                     </div>
-                                </div>
+                                </div> --}}
                                 <div class="form-group mt-3">
                                     <button type="submit" name="action_button" id="action_button" class="btn btn-primary btn-sm fa-pull-right px-4"><i class="fas fa-pen"></i>&nbsp;</button>
                                 </div>
@@ -302,8 +362,18 @@ $(document).ready(function(){
             },
             { 
                 data: 'offduty_day', 
-                name: 'offduty_day'
+                name: 'offduty_day',
+                render: function(data, type, row) {
+                    if (data == 1) {
+                        return 'Today';
+                    } else if (data == 0) {
+                        return 'Next day';
+                    } else {
+                        return '';
+                    }
+                }
             },
+           
             { 
                 data: 'saturday_onduty_time', 
                 name: 'saturday_onduty_time'
@@ -319,14 +389,6 @@ $(document).ready(function(){
             { 
                 data: 'begining_checkout', 
                 name: 'begining_checkout'
-            },
-             { 
-                data: 'ending_checkin', 
-                name: 'ending_checkin'
-            },
-             { 
-                data: 'ending_checkout', 
-                name: 'ending_checkout'
             },
             {
                 data: 'id',
@@ -428,6 +490,7 @@ $(document).ready(function(){
             dataType: "json",
             success: function (data) {
                 $('#shiftname').val(data.result.shift_name);
+                $('#shiftcode').val(data.result.shift_code);
                 $('#ondutytime').val(data.result.onduty_time);
                 $('#offdutytime').val(data.result.offduty_time);
                 $('#saturday_ondutytime').val(data.result.saturday_onduty_time);
@@ -436,10 +499,13 @@ $(document).ready(function(){
                 $('#leaveearlytime').val(data.result.leave_early_time);
                 $('#beginingcheckin').val(data.result.begining_checkin);
                 $('#beginingcheckout').val(data.result.begining_checkout);
-                $('#endingcheckin').val(data.result.ending_checkin);
-                $('#endingcheckout').val(data.result.ending_checkout);
                 $('#workdayscount').val(data.result.workdays_count);
                 $('#minutecount').val(data.result.minute_count);
+                $('#max_normal_ot_hrs').val(data.result.max_normal_ot_hrs);
+                $('#max_double_ot_hrs').val(data.result.max_double_ot_hrs);
+                $('#weekend_max_normal_ot_hrs').val(data.result.weekend_max_normal_ot_hrs);
+                $('#weekend_max_double_ot_hrs').val(data.result.weekend_max_double_ot_hrs);
+                $('#shift_end_time').val(data.result.shift_end_time);
 
                 if(data.result.offduty_day == 1){
                     $('#offduty_day_1').prop( "checked", true );
@@ -447,6 +513,22 @@ $(document).ready(function(){
                 }else if(data.result.offduty_day === 0) {
                     $('#offduty_day_0').prop( "checked", true );
                     $('.custom_offduty').css('display', 'block');
+                }
+
+                if(data.result.off_next_day == 1){
+                    $('#off_next_day_1').prop( "checked", true );
+                    $('.custom_off_next_day').css('display', 'none');
+                }else if(data.result.off_next_day === 0) {
+                    $('#off_next_day_0').prop( "checked", true );
+                    $('.custom_off_next_day').css('display', 'block');
+                }
+
+                if(data.result.on_next_day == 1){
+                    $('#on_next_day_1').prop( "checked", true );
+                    $('.custom_on_next_day').css('display', 'none');
+                }else if(data.result.on_next_day === 0) {
+                    $('#on_next_day_0').prop( "checked", true );
+                    $('.custom_on_next_day').css('display', 'block');
                 }
 
                 if(data.result.ot_calculate_type == 1){
@@ -465,19 +547,22 @@ $(document).ready(function(){
 
                 $('#ot_calculate_time').val(data.result.ot_calculate_time);
 
-                if(data.result.must_checkin == "on"){
-                    $('#mustcheckin').prop( "checked", true );
-                }else{
-                    $('#mustcheckin').prop( "checked", false );
-                }
+                //  $('#endingcheckin').val(data.result.ending_checkin);
+                // $('#endingcheckout').val(data.result.ending_checkout);
+                // if(data.result.must_checkin == "on"){
+                //     $('#mustcheckin').prop( "checked", true );
+                // }else{
+                //     $('#mustcheckin').prop( "checked", false );
+                // }
 
-                if(data.result.must_checkout == "on"){
-                    $('#mustcheckout').prop( "checked", true );
-                }else {
-                    $('#mustcheckout').prop( "checked", false );
-                }
+                // if(data.result.must_checkout == "on"){
+                //     $('#mustcheckout').prop( "checked", true );
+                // }else {
+                //     $('#mustcheckout').prop( "checked", false );
+                // }
 
-                $('#color').val(data.result.color);
+               // $('#color').val(data.result.color);
+
                 $('#hidden_id').val(id);
                 $('.modal-title').text('Edit  Work Shift');
                 $('#action_button').text('Edit');
