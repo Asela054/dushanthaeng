@@ -56,16 +56,24 @@ class AttendancePolicyService
                 if ($shift && $shift->off_next_day == '1' && $date == $date_input) {
                     $previous_day = (new DateTime($date_input))->modify('-1 day')->format('Y-m-d');
 
-                    $shif_ontime = Carbon::parse($shift->onduty_time);
-                    
+                    $shif_ontime = Carbon::parse($date . ' ' . $shift->onduty_time);
+
                     if($shif_ontime > $timestamp){
                        
-                        $attendance_date = ($period === 'AM') ? $previous_day : substr($timestamp, 0, 10);
+                        $buffer_minutes = 60; // adjust as needed
+                        $shift_ontime_buffered = $shif_ontime->copy()->subMinutes($buffer_minutes);
+
+                        if ($timestamp >= $shift_ontime_buffered) {
+                            $attendance_date = substr($timestamp, 0, 10);
+                        } else {
+                            $attendance_date = ($period === 'AM') ? $previous_day : substr($timestamp, 0, 10);
+                        }
                     }
                     else{
                         $attendance_date = substr($timestamp, 0, 10);
                     }
-                    
+
+                
                     
                 } else if ($date == $date_input) {
                     if($employeeshiftdetails){
@@ -145,7 +153,7 @@ class AttendancePolicyService
          if ($shift && $shift->off_next_day == '1' && $date_stamp == $attendacedate) {
         $previous_day = (new DateTime($attendacedate))->modify('-1 day')->format('Y-m-d');
 
-        $shif_ontime = Carbon::parse($shift->onduty_time);
+        $shif_ontime = Carbon::parse($attendacedate . ' ' .$shift->onduty_time);
         $txt_datetime = Carbon::parse($time_h . ':' . $time_m . ':00');
 
         if($shif_ontime > $txt_datetime){
