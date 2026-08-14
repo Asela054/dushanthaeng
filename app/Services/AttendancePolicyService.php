@@ -56,33 +56,57 @@ class AttendancePolicyService
                 if ($shift && $shift->off_next_day == '1' && $date == $date_input) {
                     $previous_day = (new DateTime($date_input))->modify('-1 day')->format('Y-m-d');
 
-                    $shif_ontime = Carbon::parse($date . ' ' . $shift->onduty_time);
+                      $prevDayCount = AppAttendance::where('emp_id', $full_emp_id)
+                            ->where('date', $previous_day)
+                            ->count();
 
-                    if($shif_ontime > $timestamp){
-                       
-                        $buffer_minutes = 60; // adjust as needed
-                        $shift_ontime_buffered = $shif_ontime->copy()->subMinutes($buffer_minutes);
+                        $prevDayAlreadyClosed = $prevDayCount >= 2;
 
-                        if ($timestamp >= $shift_ontime_buffered) {
-                            $attendance_date = substr($timestamp, 0, 10);
+                        if (!$prevDayAlreadyClosed) {
+                            $shif_ontime = Carbon::parse($date . ' ' . $shift->onduty_time);
+
+                            if ($shif_ontime > $timestamp) {
+                                $buffer_minutes = 60;
+                                $shift_ontime_buffered = $shif_ontime->copy()->subMinutes($buffer_minutes);
+
+                                if ($timestamp >= $shift_ontime_buffered) {
+                                    $attendance_date = substr($timestamp, 0, 10);
+                                } else {
+                                    $attendance_date = ($period === 'AM') ? $previous_day : substr($timestamp, 0, 10);
+                                }
+                            } else {
+                                $attendance_date = substr($timestamp, 0, 10);
+                            }
                         } else {
-                            $attendance_date = ($period === 'AM') ? $previous_day : substr($timestamp, 0, 10);
+                            $attendance_date = substr($timestamp, 0, 10);
                         }
-                    }
-                    else{
-                        $attendance_date = substr($timestamp, 0, 10);
-                    }
 
                 
                     
                 } else if ($date == $date_input) {
-                    if($employeeshiftdetails){
+                    if ($employeeshiftdetails) {
                         $previous_day = (new DateTime($date_input))->modify('-1 day')->format('Y-m-d');
-                        $attendance_date = ($period === 'AM') ? $previous_day : substr($timestamp, 0, 10);
-                    }else{
-                        
+
+                        $prevShift = DB::table('shift_types')
+                            ->where('id', $employeeshiftdetails->shift_id ?? $empshiftid)
+                            ->first();
+
+                        if ($prevShift && $prevShift->onduty_time) {
+                            $todays_ontime = Carbon::parse($date_input . ' ' . $prevShift->onduty_time);
+                            $buffer_minutes = 60;
+                            $ontime_buffered = $todays_ontime->copy()->subMinutes($buffer_minutes);
+
+                            if ($timestamp < $ontime_buffered) {
+                                $attendance_date = $previous_day;
+                            } else {
+                                $attendance_date = substr($timestamp, 0, 10);
+                            }
+                        } else {
+                            $attendance_date = ($period === 'AM') ? $previous_day : substr($timestamp, 0, 10);
+                        }
+                    } else {
                         $attendance_date = substr($timestamp, 0, 10);
-                    }  
+                    }
                 }
 
                 if($date == $date_input){
