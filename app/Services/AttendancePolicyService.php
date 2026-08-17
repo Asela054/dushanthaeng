@@ -84,32 +84,34 @@ class AttendancePolicyService
                 
                     
                 } else if ($date == $date_input) {
-                    if ($employeeshiftdetails) {
+                 if ($employeeshiftdetails) {
                         $previous_day = (new DateTime($date_input))->modify('-1 day')->format('Y-m-d');
-
-                        $prevShift = DB::table('shift_types')
-                            ->where('id', $employeeshiftdetails->shift_id ?? $empshiftid)
-                            ->first();
-
-                        if ($prevShift && $prevShift->onduty_time) {
-                            $todays_ontime = Carbon::parse($date_input . ' ' . $prevShift->onduty_time);
-                            $buffer_minutes = 60;
-                            $ontime_buffered = $todays_ontime->copy()->subMinutes($buffer_minutes);
-
-                            if ($timestamp < $ontime_buffered) {
-                                $attendance_date = $previous_day;
-                            } else {
-                                $attendance_date = substr($timestamp, 0, 10);
-                            }
-                        } else {
-                            $attendance_date = ($period === 'AM') ? $previous_day : substr($timestamp, 0, 10);
-                        }
+                        $attendance_date = ($period === 'AM') ? $previous_day : substr($timestamp, 0, 10);
                     } else {
                         $attendance_date = substr($timestamp, 0, 10);
                     }
                 }
 
                 if($date == $date_input){
+
+                    // last timestamp check - 1 min threshold
+                    $lastAttendance = DB::table('attendances')
+                        ->where('emp_id', $full_emp_id)
+                        ->where('date', $attendance_date)
+                        ->whereNull('deleted_at')
+                        ->orderBy('timestamp', 'desc')
+                        ->first();
+
+                    if ($lastAttendance) {
+                        $lastTime = Carbon::parse($lastAttendance->timestamp);
+                        $newTime  = Carbon::parse($timestamp);
+
+                        if ($newTime->diffInSeconds($lastTime) < 60) {
+                            return true; // too close to last punch, skip
+                        }
+                    }
+
+
                     $Attendance = AppAttendance::firstOrNew(['timestamp' => $timestamp, 'emp_id' => $full_emp_id]);
                     $Attendance->uid = $full_emp_id;
                     $Attendance->emp_id = $full_emp_id;
