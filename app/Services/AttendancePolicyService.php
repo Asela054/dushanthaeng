@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class AttendancePolicyService
@@ -14,7 +15,8 @@ class AttendancePolicyService
 
     public function attendanceInsertcsv_txt($full_emp_id, $date_input, $timestamp, $date)
     {
-        
+        $lateAttendanceData = 0;
+
          $empshift = DB::table('employees')
             ->select('emp_id', 'emp_shift')
             ->where('emp_id', $full_emp_id)
@@ -111,6 +113,17 @@ class AttendancePolicyService
                         }
                     }
 
+                      $existingTimestampCount = DB::table('attendances')
+                                ->where('emp_id', $full_emp_id)
+                                ->where('date', $attendance_date)
+                                ->whereNull('deleted_at')
+                                ->count();
+
+                            if ($existingTimestampCount > 0) {
+                            $lateAttendanceData = 0;
+                            }else{
+                                $lateAttendanceData = 1;
+                            }
 
                     $Attendance = AppAttendance::firstOrNew(['timestamp' => $timestamp, 'emp_id' => $full_emp_id]);
                     $Attendance->uid = $full_emp_id;
@@ -119,12 +132,19 @@ class AttendancePolicyService
                     $Attendance->date = $attendance_date;
                     $Attendance->location = 1;
                     $Attendance->save();
+
+                    $insertId = $Attendance->id;
+
+                    if($lateAttendanceData == 1){
+                        return $this->checkAndInsertLateAttendance($full_emp_id, $attendance_date, $timestamp, $insertId);
+                    }
                 }           
                 return true;
     }
 
     public function attendanceInsertsingle_dep($empid, $attendacetimestamp, $location, $attendacedate)
     {  
+            $lateAttendanceData = 0;
             $datetime_parts = explode('T', $attendacetimestamp);
 
             $timestampdate = $datetime_parts[0];
@@ -201,6 +221,20 @@ class AttendancePolicyService
         }
 
         if($date_stamp == $attendacedate){
+
+             $existingTimestampCount = DB::table('attendances')
+                    ->where('emp_id', $empid)
+                    ->where('date', $attendance_date)
+                    ->whereNull('deleted_at')
+                    ->count();
+
+                if ($existingTimestampCount > 0) {
+                   $lateAttendanceData = 0;
+                }else{
+                    $lateAttendanceData = 1;
+                }
+
+
             $data = array(
                 'emp_id' => $empid,
                 'uid' => $empid,
@@ -213,10 +247,165 @@ class AttendancePolicyService
                 'location' => $location
             );
             
-            return DB::table('attendances')->insert($data);
+             $insertId = DB::table('attendances')->insertGetId($data);
+
+            if($lateAttendanceData == 1){
+                 return $this->checkAndInsertLateAttendance($empid, $attendacedate, $attendacetimestamp, $insertId);
+            }
         }
         return true;
 
     }
+
+
+      private function checkAndInsertLateAttendance($empId, $date, $firstCheckin, $attendanceId)
+    {
+
+        $latePolicyService = new LatePolicyService();
+
+        $lateMinutes = 0;
+        $isLate = false;
+
+        // Check if a record already exists for this attendance ID
+        $existingRecord = DB::table('employee_late_attendances')
+            ->where('emp_id', $empId)
+            ->where('date', $date)
+            ->first();
+
+        if ($existingRecord) {
+            $checkInTime = Carbon::parse($existingRecord->check_in_time);
+            $checkOutTime = Carbon::parse($firstCheckin);
+            $workingHoursDiff = $checkOutTime->diffInSeconds($checkInTime);
+
+            // Format working hours as H:i:s
+            $workingHours = gmdate("H:i:s", $workingHoursDiff);
+
+            DB::table('employee_late_attendances')
+                ->where('id', $existingRecord->id)
+                ->update([
+                    'check_out_time' => $firstCheckin,
+                    'working_hours' => $workingHours,
+                    'updated_by' => Auth::id()
+                ]);
+
+            return true;
+
+        } else {
+            // Get employee shift information
+            $employeeshift = DB::table('employees')
+                ->select('emp_id', 'emp_shift')
+                ->where('emp_id', $empId)
+                ->first();
+
+            if (is_null($employeeshift)) {
+                return false;
+            }
+
+            // Check if employee has roster for this date
+            $rosterInfo = DB::table('employee_roster_details')
+                ->select('emp_id', 'shift_id')
+                ->where('emp_id', $empId)
+                ->where('work_date', $date)
+                ->first();
+
+            // Determine shift ID (roster shift if exists, otherwise employee default shift)
+            if ($rosterInfo) {
+                $shiftId = $rosterInfo->shift_id;
+            } else {
+                $shiftId = $employeeshift->emp_shift;
+            }
+
+            // Get shift on-duty time
+            $shiftType = DB::table('shift_types')
+                ->select('late_time', 'leave_early_time', 'onduty_time', 'offduty_time', 'saturday_onduty_time', 'saturday_offduty_time')
+                ->where('id', $shiftId)
+                ->first();
+
+            if (!$shiftType) {
+                return true;
+            }
+
+            $isSaturday = Carbon::parse($date)->isSaturday();
+
+            if ($isSaturday && $shiftType->saturday_onduty_time && $shiftType->saturday_offduty_time) {
+
+                $onDutyTime = Carbon::parse($shiftType->saturday_onduty_time);
+                $offDutyTime = Carbon::parse($shiftType->saturday_offduty_time);
+            } else {
+                $onDutyTime = Carbon::parse($shiftType->onduty_time);
+                $offDutyTime = Carbon::parse($shiftType->offduty_time);
+            }
+
+            $checkInTime = Carbon::parse($firstCheckin);
+
+            // Determine whether this punch is a check-in or a check-out by measuring how close the punch time is to each boundary.
+            // If the punch is closer to off-duty time than on-duty time,
+            // it is most likely a check-out punch — so we skip late marking to avoid incorrectly flagging a clock-out as a late arrival.
+            $diffFromOnDuty = abs($checkInTime->diffInMinutes($onDutyTime));
+            $diffFromOffDuty = abs($checkInTime->diffInMinutes($offDutyTime));
+
+            if ($diffFromOffDuty < $diffFromOnDuty) {
+                // This punch is closer to off-duty time → treat as check-out, not check-in Skip late attendance evaluation to prevent false late records
+                return true;
+            }
+
+
+            if ($shiftType->late_time) {
+
+                $ondutylateTime = new DateTime($date . ' ' . $shiftType->late_time);
+                $checkInTime = new DateTime($firstCheckin);
+
+                $interval = $checkInTime->diff($ondutylateTime);
+                $lateMinutes = ($interval->h * 60) + $interval->i;
+
+                // Check if check-in time is after on-duty time
+                if ($checkInTime > $ondutylateTime) {
+                    $isLate = true;
+                }
+            }
+
+            if ($isLate) {
+
+                $lateAttendanceData = [
+                    'attendance_id' => $attendanceId,
+                    'emp_id' => $empId,
+                    'date' => $date,
+                    'check_in_time' => $firstCheckin,
+                    'check_out_time' => 0,
+                    'working_hours' => 0,
+                    'created_by' => Auth::id() ?? 1,
+                    'is_approved' => 1,
+                    'approved_by' => Auth::id() ?? 1,
+                ];
+
+                $insertedId = DB::table('employee_late_attendances')->insertGetId($lateAttendanceData);
+
+                // Insert new late minutes record
+                $lateMinutesData = [
+                    'attendance_id' => $attendanceId,
+                    'emp_id' => $empId,
+                    'attendance_date' => $date,
+                    'minites_count' => $lateMinutes
+                ];
+
+                DB::table('employee_late_attendance_minites')->insert($lateMinutesData);
+
+
+                $emp_data = DB::table('employee_late_attendances')->find($insertedId);
+
+                if ($emp_data) {
+                    $leave_type = 7;
+
+                    $latePolicyService->processLateAttendance($emp_data, $leave_type, $date);
+                }
+
+            }
+            return true;
+
+        }
+
+    }
     
+
+
 }
