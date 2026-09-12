@@ -18,6 +18,7 @@ class DailysummaryapprovControllr extends Controller
         }
 
          $leave_types = DB::table('leave_types')->get();
-        return view('Daily_summary.daily_approve', compact('leave_types'));
+        $remunerations=DB::table('remunerations')->select('*')->where('allocation_method', 'TERMS')->get();
+        return view('Daily_summary.daily_approve', compact('leave_types', 'remunerations'));
     }
 }

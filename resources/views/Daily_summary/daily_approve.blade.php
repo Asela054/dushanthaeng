@@ -118,6 +118,18 @@
                                 </li>
                                 <li class="mb-2">
                                     <div class="col-md-12">
+                                    <label class="small font-weight-bolder text-dark">Add/Deduct Type*</label>
+                                        <select id="remuneration_name" name="remuneration_name" class="form-control form-control-sm" required>
+                                        <option value="">Select Remuneration</option>
+                                        @foreach ($remunerations as $remuneration){
+                                            <option value="{{$remuneration->id}}" >{{$remuneration->remuneration_name}}</option>
+                                        }  
+                                        @endforeach
+                                    </select>
+                                    </div>
+                                </li>
+                                <li class="mb-2">
+                                    <div class="col-md-12">
                                         <label class="small font-weight-bolder text-dark">Date</label>
                                         <input type="date" id="from_date" name="from_date" class="form-control form-control-sm"placeholder="yyyy-mm-dd">
                                     </div>
@@ -318,6 +330,107 @@
             </div>
         </div>
         
+        {{-- Late Deduction Approve Modal --}}
+        <div class="container-fluid mt-2 p-0 p-2">
+            <div class="card">
+                <div class="card-body p-0 p-2 main_card">
+                    <div class="row">
+                        <div class="col-md-12">
+
+                            <div class="row align-items-center mb-4">
+                                 <div class="col-md-12">
+                                         <h1 class="mb-0">Late Deduction Approval</h1>
+                                    </div>
+                                <div class="col-12">
+                                    <hr class="border-dark">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input checkallocate" id="selectAll_late_deduction">
+                                        <label class="form-check-label" for="selectAll_late_deduction">Select All Records</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <button id="approve_late_deduction" class="btn btn-primary btn-sm"><i class="fa-light fa-light fa-clipboard-check"></i>&nbsp;Approve All</button>
+                                </div>
+                            </div>
+
+                            <div class="center-block fix-width scroll-inner">
+                                <table class="table table-striped table-bordered table-sm small nowrap display" style="width: 100%"  id="late_dedutable">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>EMPLOYEE ID</th>
+                                        <th>EMPLOYEE NAME</th>
+                                        <th>LATE MINITES TOTAL</th>
+                                        <th>NOPAY AMOUNT</th>
+                                        <th>TOTAL AMOUNT</th>
+                                        <th class="d-none">EMPLOYEE auto ID</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="responselate_deduction">
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Salary Adjustment Approve Modal --}}
+        <div class="container-fluid mt-2 p-0 p-2">
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row align-items-center mb-4">
+                                        <div class="col-md-12">
+                                            <h1 class="mb-0">Salary Adjustments Approval</h1>
+                                        </div>
+                                        <div class="col-12">
+                                            <hr class="border-dark">
+                                        </div>
+
+                                        <div class="col-6 mb-2">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input checkallocate" id="selectAll_salary">
+                                                <label class="form-check-label" for="selectAll_salary">Select All Records</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 text-right">
+                                            <button id="approve_salary" class="btn btn-primary btn-sm px-3"><i class="fa-light fa-light fa-clipboard-check"></i>&nbsp;Approve All</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="center-block fix-width scroll-inner">
+                                        <table class="table table-striped table-bordered table-sm small nowrap display"
+                                            style="width: 100%" id="dataTable_salary">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>EMP ID </th>
+                                                    <th>EMPLOYEE NAME</th>
+                                                    <th>TOTAL WORKING DAYS</th>
+                                                    <th>ALLOWANCE AMOUNT</th>
+                                                    <th>ADDITION | DEDUCTION AMOUNT</th>
+                                                    <th>REMAINING AMOUNT</th>
+                                                    <th class="d-none">PAYROLL PROFILE</th>
+                                                    <th class="d-none">TYPE</th>
+                                                    <th class="d-none">REMUNITION</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="responseattendance_salary">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+
     </main>
 
 @endsection
@@ -456,7 +569,29 @@
                 '</tr>'
             );
 
+            $('.responselate_deduction').html(
+                '<tr>' +
+                '<td colspan="6" class="text-center py-5">' + // Changed colspan to 9 to match your columns
+                '<div class="d-flex flex-column align-items-center">' +
+                '<i class="fas fa-filter fa-3x text-muted mb-2"></i>' +
+                '<h4 class="text-muted mb-2">No Records Found</h4>' +
+                '<p class="text-muted">Use the filter options to get records</p>' +
+                '</div>' +
+                '</td>' +
+                '</tr>'
+            );
         
+            $('.responseattendance_salary').html(
+                '<tr>' +
+                '<td colspan="7" class="text-center py-5">' + // Changed colspan to 9 to match your columns
+                '<div class="d-flex flex-column align-items-center">' +
+                '<i class="fas fa-filter fa-3x text-muted mb-2"></i>' +
+                '<h4 class="text-muted mb-2">No Records Found</h4>' +
+                '<p class="text-muted">Use the filter options to get records</p>' +
+                '</div>' +
+                '</td>' +
+                '</tr>'
+            );
 
             $('#formFilter').on('submit',function(e) {
                 e.preventDefault();
@@ -471,11 +606,13 @@
                 let date_obj = from_date ? new Date(from_date) : null;
                 let month = date_obj ? date_obj.getFullYear() + '-' + String(date_obj.getMonth() + 1).padStart(2, '0') : '';
 
+              
                 load_table(department, employee, location, from_date);
-                load_dt_late(department,company, location, from_date);
-
                 load_dt_atte_Approve(company,department, month, from_date);
+                load_dt_late_deduction_Approve(company,department, month, from_date)
+                
 
+                load_dt_late(department,company, location, from_date);
                 closeOffcanvasSmoothly();
 
             });
@@ -1280,7 +1417,382 @@
 
             });
 
+            // late deduction approve table load function
+
+            function load_dt_late_deduction_Approve(company,department, month, from_date) {
+
+                    $.ajax({
+                            url: "{{url('/getlateminitesapprovel')}}",
+                            method: "POST",
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                department: department,
+                                month: month,
+                                closedate: from_date
+                            },
+                            dataType: "json",
+                            success: function (data) {
+                                if ($.fn.DataTable.isDataTable('#late_dedutable')) {
+                                    $('#late_dedutable').DataTable().clear().destroy();
+                                }
+                                
+                                $('#late_dedutable tbody').empty();
+                                let dataRows = '';
+                                $.each(data.data, function (index, item) {
+                                    dataRows += `
+                                                <tr>
+                                                    <td><input type="checkbox" class="row-checkbox selectCheck removeIt"></td>
+                                                    <td>${item.emp_id}</td>
+                                                    <td>${item.emp_name_with_initial}</td>
+                                                    <td>${item.late_hours_total}</td>
+                                                    <td>${item.nopayAmount}</td>
+                                                    <td>${item.late_day_amount}</td>
+                                                    <td class="d-none">${item.emp_autoid}</td>
+                                                </tr>`;
+                                });
+                                $('#late_dedutable tbody').html(dataRows);
+                                $('#late_dedutable').DataTable({
+                                    destroy: true,
+                                    responsive: true,
+                                    dom: "<'row'<'col-sm-4 mb-sm-0 mb-2'B><'col-sm-2'l><'col-sm-6'f>>" + "<'row'<'col-sm-12'tr>>" +
+                                            "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                                        "buttons": [{
+                                                extend: 'csv',
+                                                className: 'btn btn-success btn-sm',
+                                                title: 'Late Deduction Approval Information',
+                                                text: '<i class="fas fa-file-csv mr-2"></i> CSV',
+                                            },
+                                            { 
+                                                extend: 'pdf', 
+                                                className: 'btn btn-danger btn-sm', 
+                                                title: 'Late Deduction Approval Information', 
+                                                text: '<i class="fas fa-file-pdf mr-2"></i> PDF',
+                                                orientation: 'landscape', 
+                                                pageSize: 'legal', 
+                                                customize: function(doc) {
+                                                    doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+                                                }
+                                            },
+                                            {
+                                                extend: 'print',
+                                                title: 'Late Deduction Approval  Information',
+                                                className: 'btn btn-primary btn-sm',
+                                                text: '<i class="fas fa-print mr-2"></i> Print',
+                                                customize: function(win) {
+                                                    $(win.document.body).find('table')
+                                                        .addClass('compact')
+                                                        .css('font-size', 'inherit');
+                                                },
+                                            },
+                                        ],
+                                    columnDefs: [{
+                                        orderable: false,
+                                        targets: [0, 6]
+                                    }, ]
+
+                                
+                                });
+                                $('#btn-filter').html('Filter').prop('disabled', false);
+                            }
+                        });
+            }
+
+            var selectedRowIdsapprove_late = [];
+
+            $('#approve_late_deduction').click(async function () {
+                var r = await Otherconfirmation("You want to Edit this ? ");
+                if (r == true) {
+
+                    selectedRowIdsapprove_late = [];
+                    $('#late_dedutable tbody .selectCheck:checked').each(function () {
+                        var rowData = $('#late_dedutable').DataTable().row($(this).closest('tr')).data();
+
+                        if (rowData) {
+                            selectedRowIdsapprove_late.push({
+                                empid: rowData[1],
+                                emp_name: rowData[2],
+                                late_hourstotal: rowData[3],
+                                nopayamount: rowData[4],
+                                total_amount: rowData[5],
+                                autoid: rowData[6],
+                            });
+                        }
+                    });
+
+                    if (selectedRowIdsapprove_late.length > 0) {
+                        console.log(selectedRowIdsapprove_late);
+
+
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        })
+
+                        let department = $('#department').val();
+                        let company = $('#company').val();
+                        let from_date = $('#from_date').val();
+
+                        let date_obj = from_date ? new Date(from_date) : null;
+                        let month = date_obj ? date_obj.getFullYear() + '-' + String(date_obj.getMonth() + 1).padStart(2, '0') : '';
+
+
+                        $.ajax({
+                            url: '{!! route("approvelatemintes") !!}',
+                            type: 'POST',
+                            dataType: "json",
+                            data: {
+                                dataarry: selectedRowIdsapprove,
+                                department: department,
+                                month: month,
+                                closedate: from_date
+                            },
+                            success: function (data) {
+                            if (data.errors) {
+                                    const actionObj = {
+                                        icon: 'fas fa-warning',
+                                        title: '',
+                                        message: 'Record Error',
+                                        url: '',
+                                        target: '_blank',
+                                        type: 'danger'
+                                    };
+                                    const actionJSON = JSON.stringify(actionObj, null, 2);
+                                    action(actionJSON);
+                                }
+                                if (data.success) {
+                                    const actionObj = {
+                                        icon: 'fas fa-save',
+                                        title: '',
+                                        message: data.success,
+                                        url: '',
+                                        target: '_blank',
+                                        type: 'success'
+                                    };
+                                    const actionJSON = JSON.stringify(actionObj, null, 2);
+                                    action(actionJSON);
+                                }
+
+                            }
+                        })
+                    } else {
+
+                        Swal.fire({
+                            position: "top-end",
+                            icon: 'warning',
+                            title: 'Select Rows to Final Approve!',
+                            showConfirmButton: false,
+                            timer: 2500
+                            });
+                    }
+                }
+            });
+
+            $('#selectAll_late_deduction').click(function (e) {
+                $('#late_dedutable').closest('table').find('td input:checkbox').prop('checked', this.checked);
+            });
+
+            // salary addition approve table load function
+
+
+        $('#formFilter').on('submit', function (event) {
+            event.preventDefault();
+             closeOffcanvasSmoothly();
+
+            var action_url = "{{ route('mealallowancecreate') }}";
+
+            var department = $('#department').val();
+            var from_date = $('#from_date').val();
+            var remunerationtype = $('#remuneration_name').val();
+
+            let date_obj = from_date ? new Date(from_date) : null;
+            let month = date_obj ? date_obj.getFullYear() + '-' + String(date_obj.getMonth() + 1).padStart(2, '0') : '';
+
+
+            $.ajax({
+                url: action_url,
+                method: "POST",
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    department: department,
+                    from_date: from_date,
+                    to_date: from_date,
+                    selectedmonth: month,
+                    remunerationtype: remunerationtype
+                },
+                dataType: "json",
+                success: function (data) {
+                    if ($.fn.DataTable.isDataTable('#dataTable_salary')) {
+                        $('#dataTable_salary').DataTable().clear().destroy();
+                    }
+                    
+                    $('#dataTable_salary tbody').empty();
+
+                    let dataRows = '';
+                    $.each(data.data, function (index, item) {
+                        dataRows += `
+                                    <tr>
+                                        <td>
+                                            ${item.approvedallowancestatus == 1 
+                                                ? '<i class="fa fa-check-circle text-success"></i>' 
+                                                : '<input type="checkbox" class="row-checkbox selectCheck removeIt">'
+                                            }
+                                        </td>
+                                        <td>${item.empid}</td>
+                                        <td>${item.emp_name}</td>
+                                        <td>${item.working_Days}</td>
+                                        <td>${item.allowance_amount}</td>
+                                        <td>${item.total_amount}</td>
+                                        <td>${item.monthly_remain}</td>
+                                        <td class="d-none">${item.payroll_Profile}</td>
+                                        <td class="d-none">${item.allowance_type}</td>
+                                        <td class="d-none">${item.remuneration_id}</td>
+                                    </tr>
+                                `;
+                    });
+                    $('#dataTable_salary tbody').html(dataRows);
+                    $('#dataTable_salary').DataTable({
+                        destroy: true,
+                        responsive: true,
+                         dom: "<'row'<'col-sm-4 mb-sm-0 mb-2'B><'col-sm-2'l><'col-sm-6'f>>" + "<'row'<'col-sm-12'tr>>" +
+                                "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+                            "buttons": [{
+                                    extend: 'csv',
+                                    className: 'btn btn-success btn-sm',
+                                    title: 'Salary Adjustments Approval Information',
+                                    text: '<i class="fas fa-file-csv mr-2"></i> CSV',
+                                },
+                                { 
+                                    extend: 'pdf', 
+                                    className: 'btn btn-danger btn-sm', 
+                                    title: 'Salary Adjustments Approval Information', 
+                                    text: '<i class="fas fa-file-pdf mr-2"></i> PDF',
+                                    orientation: 'landscape', 
+                                    pageSize: 'legal', 
+                                    customize: function(doc) {
+                                        doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+                                    }
+                                },
+                                {
+                                    extend: 'print',
+                                    title: 'Salary Adjustments Approval  Information',
+                                    className: 'btn btn-primary btn-sm',
+                                    text: '<i class="fas fa-print mr-2"></i> Print',
+                                    customize: function(win) {
+                                        $(win.document.body).find('table')
+                                            .addClass('compact')
+                                            .css('font-size', 'inherit');
+                                    },
+                                },
+                            ],
+                        columnDefs: [{
+                            orderable: false,
+                            targets: [0, 9]
+                        }, ]
+                    });
+                }
+            });
         });
+
+        var selectedRowIdsapprove_salary = [];
+
+        $('#approve_salary').click( async function () {
+
+              var r = await Otherconfirmation("You want to Edit this ? ");
+            if (r == true) {
+
+                selectedRowIdsapprove_salary = [];
+                    $('#dataTable_salary tbody .selectCheck:checked').each(function () {
+                        var rowData = $('#dataTable_salary').DataTable().row($(this).closest('tr')).data();
+
+                        if (rowData) {
+                            selectedRowIdsapprove_salary.push({
+                                empid: rowData[1],
+                                emp_name: rowData[2], 
+                                working_Days: rowData[3],
+                                allowance_amount: rowData[4], 
+                                total_amount: rowData[5], 
+                                monthly_remain: rowData[6], 
+                                payroll_Profile: rowData[7],
+                                allowance_type: rowData[8],
+                                remuneration_id: rowData[9]
+                            });
+                        }
+                    });
+
+                    if (selectedRowIdsapprove_salary.length > 0) {
+                     console.log(selectedRowIdsapprove_salary);
+                       
+                     $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        })
+
+                        var department = $('#department').val();
+                        var from_date = $('#from_date').val();
+                        var remunerationtype = $('#remuneration_name').val();
+
+                        let date_obj = from_date ? new Date(from_date) : null;
+                        let month = date_obj ? date_obj.getFullYear() + '-' + String(date_obj.getMonth() + 1).padStart(2, '0') : '';
+
+
+                        $.ajax({
+                            url: '{!! route("mealallowancecreateapprove") !!}',
+                            type: 'POST',
+                            dataType: "json",
+                            data: {
+                                dataarry: selectedRowIdsapprove_salary,
+                                selectedmonth: month,
+                                from_date:from_date,
+                                to_date:from_date
+                            },
+                            success: function (data) {
+                                  if (data.errors) {
+                                        const actionObj = {
+                                            icon: 'fas fa-warning',
+                                            title: '',
+                                            message: 'Record Error',
+                                            url: '',
+                                            target: '_blank',
+                                            type: 'danger'
+                                        };
+                                        const actionJSON = JSON.stringify(actionObj, null, 2);
+                                        action(actionJSON);
+                                    }
+                                    if (data.success) {
+                                        const actionObj = {
+                                            icon: 'fas fa-save',
+                                            title: '',
+                                            message: data.success,
+                                            url: '',
+                                            target: '_blank',
+                                            type: 'success'
+                                        };
+                                        const actionJSON = JSON.stringify(actionObj, null, 2);
+                                        action(actionJSON);
+                                    }
+                            }
+                        })
+
+                    } else {
+                        Swal.fire({
+                        position: "top-end",
+                        icon: 'warning',
+                        title: 'Select Rows to Final Approve!',
+                        showConfirmButton: false,
+                        timer: 2500
+                        });
+                    }
+            }
+                    
+        });
+
+
+        $('#selectAll_salary').click(function (e) {
+            $('#dataTable_salary').closest('table').find('td input:checkbox').prop('checked', this.checked);
+        });
+     });
     </script>
 
 @endsection
