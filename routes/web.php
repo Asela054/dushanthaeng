@@ -1652,6 +1652,10 @@ Route::post('OutsideEmployee/update', 'OutsideEmployees\OutsideEmployeeControlle
 Route::get('OutsideEmployee/destroy/{id}', 'OutsideEmployees\OutsideEmployeeController@destroy');
 /*-- out side employees----*/
 
+//Daily Summary Approve
+Route::get('daily_summary_approve', 'DailysummaryapprovControllr@index')->name('daily_summary_approve');
+
+
 Route::get('/clear-cache', function() {
     Artisan::call('cache:clear');
     Artisan::call('config:clear');
