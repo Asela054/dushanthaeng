@@ -1655,6 +1655,9 @@ Route::get('OutsideEmployee/destroy/{id}', 'OutsideEmployees\OutsideEmployeeCont
 //Daily Summary Approve
 Route::get('daily_summary_approve', 'DailysummaryapprovControllr@index')->name('daily_summary_approve');
 
+// Estimate Salary Report
+Route::get('estimatesalaryreport', 'EstimateSalaryReportController@index')->name('estimatesalaryreport');
+Route::post('estimatesalaryreportgenerate', 'EstimateSalaryReportController@generatereport')->name('estimatesalaryreportgenerate');
 
 Route::get('/clear-cache', function() {
     Artisan::call('cache:clear');
