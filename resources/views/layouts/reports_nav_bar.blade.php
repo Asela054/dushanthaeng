@@ -35,6 +35,7 @@
           <li><a class="dropdown-item" href="{{ route('departmentwise_otreport')}}"> Department-Wise O.T. Report</a></li>
           <li><a class="dropdown-item" href="{{ route('departmentwise_leavereport')}}">Department-Wise Leave Report</a></li>
           <li><a class="dropdown-item" href="{{ route('joballocationreport')}}">Job Allocation Report</a></li>
+          <li><a class="dropdown-item" href="{{ route('estimatesalaryreport')}}">Estimate Salary Report</a></li>
         </ul>
   </div>
 
