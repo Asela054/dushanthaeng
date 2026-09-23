@@ -41,6 +41,7 @@
       <li><a class="dropdown-item" href="{{ url('ReportSixMonth') }}" id="sixmonth">Six Month Report</a></li>
       <li><a class="dropdown-item" href="{{ url('ReportAddition') }}" id="additionreport">Additions Report</a></li>
       <li><a class="dropdown-item" href="{{ url('SalaryReconciliation') }}" id="salaryreconslationreport">Salary Reconciliation</a></li>
+      <li><a class="dropdown-item" href="{{ url('salaryAdvanceReport') }}" id="salaryadvancereport">Salary Advance Report</a></li>
     </ul>
   </div>
   <div class="dropdown">
@@ -55,6 +56,14 @@
       <li><a class="dropdown-item" href="{{ url('EmpSalaryJournalVoucher') }}">Employee Salary (Journal Voucher)</a>
       </li>
       <li><a class="dropdown-item" href="{{ url('EmpEpfEtfJournalVoucher') }}">EPF and ETF (Journal Voucher)</a></li>
+    </ul>
+  </div>
+  <div class="dropdown">
+    <a role="button" data-toggle="dropdown" class="btn navbtncolor" href="javascript:void(0);" id="advancesincentives">
+      Advances <span class="caret"></span></a>
+    <ul class="dropdown-menu multi-level dropdownmenucolor" role="menu" aria-labelledby="dropdownMenu">
+      <li><a class="dropdown-item" href="{{ url('salaryAdvance') }}" id="salaryAdvance">Salary Advances</a></li>
+      <li><a class="dropdown-item" href="{{ url('salaryAdvanceApproval') }}" id="salaryAdvanceApproval">Salary Advance Approval</a></li>
     </ul>
   </div>
 </div>
